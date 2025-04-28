@@ -1,7 +1,15 @@
 @import 'stylesheets/canvas-layer.less';
 @import 'stylesheets/layer-menu.less';
+@import (inline) "../node_modules/@yaireo/tagify/dist/tagify.css";
 
 .canvas-layers {
+    &.tagify {
+        background-color: rgba(0, 0, 0, 0.1);
+        color: var(--color-border);
+        border-color: var(--color-border);
+        border-radius: 4px;
+    }
+
     .string-dialog {
         display: flex;
         gap: 4px;
@@ -45,6 +53,17 @@
             button {
                 flex: 1;
             }
+        }
+    }
+
+    &.canvas-entity-layers-container {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        h4 {
+            text-align: center;
+            margin: 0;
         }
     }
 }

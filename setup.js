@@ -1,5 +1,5 @@
 import { CanvasLayerData } from "./data/CanvasLayer.js";
-import { MODULE_ID } from "./CanvasLayers.js";
+import { MODULE_ID } from "./canvas-layers.js";
 
 export const ModuleSettings = {
     canvasLayerData: 'canvas-layer-data',

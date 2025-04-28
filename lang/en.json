@@ -2,6 +2,7 @@
     "CanvasLayers": {
         "General": {
             "Layer": "Layer",
+            "Layers": "Layers",
             "Drawings": "Drawings",
             "Confirm": "Confirm",
             "Cancel": "Cancel"
@@ -10,7 +11,8 @@
             "AddCanvasLayer": "Add New Scene Draw Layer",
             "AddCanvasLayerTitle": "{scene} - New Draw Layer",
             "EditCanvasLayerTitle": "{scene} - Edit Draw Layer",
-            "LayerMenu": "Layer menu"
+            "LayerMenu": "Layer menu",
+            "UsedLayersTitle": "Containing Canvas Layers"
         },
         "LayerMenu": {
             "Title": "{scene} - Layer Menu",

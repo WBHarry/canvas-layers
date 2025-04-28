@@ -1,4 +1,4 @@
-import { MODULE_ID, ModuleFlags } from "../CanvasLayers.js";
+import { MODULE_ID, ModuleFlags } from "../canvas-layers.js";
 import { ExpandedDragDrop } from "../scripts/expandedDragDrop.js";
 import RemoveLayerDialog from "./RemoveLayerDialog.js";
 import StringDialog from "./StringDialog.js";
