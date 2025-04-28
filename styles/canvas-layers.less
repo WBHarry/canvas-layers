@@ -1,0 +1,50 @@
+@import 'stylesheets/canvas-layer.less';
+@import 'stylesheets/layer-menu.less';
+
+.canvas-layers {
+    .string-dialog {
+        display: flex;
+        gap: 4px;
+
+        button {
+            font-size: 24px;
+            height: 32px;
+            min-height: 32px;
+        }
+    }
+
+    &.remove-layer-dialog {
+        .remove-layer-options-container {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            .remove-layer-option-container {
+                display: flex;
+                align-items: center;
+                gap: 2px;
+
+                .remove-layer-option-title {
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+
+                .remove-layer-option-checkbox {
+                    height: 18px;
+                }
+            }   
+        }
+
+        footer {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            button {
+                flex: 1;
+            }
+        }
+    }
+}

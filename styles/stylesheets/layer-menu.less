@@ -1,0 +1,64 @@
+.canvas-layers.layer-menu {
+    .layer-menu-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .layers-container {   
+            border-width: 4px;
+            border-radius: 6px;
+            border-style: ridge;
+            border-color: black;
+            
+            legend {
+                margin-left: auto;
+                margin-right: auto;
+                font-size: 32px;
+            }
+
+            .layers-inner-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+
+                .layer-container {
+                    padding: 4px;
+                    border: 2px solid black;
+                    border-radius: 4px;
+                    width: 100%;
+                    display: flex;
+                    align-items: start;
+                    justify-content: space-between;
+
+                    .layer-title-container {
+                        display: flex;
+                        gap: 8px;
+                        
+                        .layer-grip {
+                            font-size: 28px;
+                            cursor: grab;
+                        }
+
+                        .layer-title {
+                            font-size: 22px;
+                            font-weight: bold;
+                        }
+                    }
+
+                    .layer-toolbar {
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+
+                        button.active {
+                            i {
+                                color: gold;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

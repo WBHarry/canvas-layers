@@ -1,0 +1,56 @@
+.canvas-layer {
+    &.canvas-layer-outer-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        pointer-events: all;
+
+        .canvas-layer-toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+            height: 32px;
+
+            button {
+                height: 14px;
+                background: var(--control-bg-color);
+                border: 1px solid var(--control-border-color);
+                border-radius: 4px;
+                color: var(--control-icon-color);
+                font-size: 12px;
+                padding: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        .canvas-layers-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .canvas-layer-container {
+                display: flex;
+                align-items: center;
+                padding: 8px;
+                width: auto;
+                position: relative;
+                opacity: 0.4;
+
+                &.active {
+                    opacity: 1;
+                }
+            }
+
+            .canvas-layer-settings {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8px;
+                width: auto;
+            }
+        }
+    }
+}

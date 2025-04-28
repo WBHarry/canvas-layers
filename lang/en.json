@@ -1,0 +1,30 @@
+{
+    "CanvasLayers": {
+        "General": {
+            "Layer": "Layer",
+            "Drawings": "Drawings",
+            "Confirm": "Confirm",
+            "Cancel": "Cancel"
+        },
+        "UI": {
+            "AddCanvasLayer": "Add New Scene Draw Layer",
+            "AddCanvasLayerTitle": "{scene} - New Draw Layer",
+            "EditCanvasLayerTitle": "{scene} - Edit Draw Layer",
+            "LayerMenu": "Layer menu"
+        },
+        "LayerMenu": {
+            "Title": "{scene} - Layer Menu",
+            "LayersSection": {
+                "Title": "Layers",
+                "ToggleActive": "Toggle Active",
+                "EditName": "Edit Name",
+                "Favorite": "Mark As Favorite",
+                "Remove": "Clean Layer",
+                "RemoveMenu": {
+                    "Title": "{scene} - {layer}",
+                    "RemoveConfirmationOptionText": "Select what about this layer you would like to remove. Connected drawings are only removed if they belong <strong>only</strong> to this layer, otherwise they are decoupled from this layer."
+                }
+            }
+        }
+    }    
+}

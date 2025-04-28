@@ -1,0 +1,135 @@
+.canvas-layer.canvas-layer-outer-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: all;
+}
+.canvas-layer.canvas-layer-outer-container .canvas-layer-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  height: 32px;
+}
+.canvas-layer.canvas-layer-outer-container .canvas-layer-toolbar button {
+  height: 14px;
+  background: var(--control-bg-color);
+  border: 1px solid var(--control-border-color);
+  border-radius: 4px;
+  color: var(--control-icon-color);
+  font-size: 12px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.canvas-layer.canvas-layer-outer-container .canvas-layers-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.canvas-layer.canvas-layer-outer-container .canvas-layers-container .canvas-layer-container {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  width: auto;
+  position: relative;
+  opacity: 0.4;
+}
+.canvas-layer.canvas-layer-outer-container .canvas-layers-container .canvas-layer-container.active {
+  opacity: 1;
+}
+.canvas-layer.canvas-layer-outer-container .canvas-layers-container .canvas-layer-settings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  width: auto;
+}
+.canvas-layers.layer-menu .layer-menu-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container {
+  border-width: 4px;
+  border-radius: 6px;
+  border-style: ridge;
+  border-color: black;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container legend {
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 32px;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container .layers-inner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container .layers-inner-container .layer-container {
+  padding: 4px;
+  border: 2px solid black;
+  border-radius: 4px;
+  width: 100%;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container .layers-inner-container .layer-container .layer-title-container {
+  display: flex;
+  gap: 8px;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container .layers-inner-container .layer-container .layer-title-container .layer-grip {
+  font-size: 28px;
+  cursor: grab;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container .layers-inner-container .layer-container .layer-title-container .layer-title {
+  font-size: 22px;
+  font-weight: bold;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container .layers-inner-container .layer-container .layer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.canvas-layers.layer-menu .layer-menu-container .layers-container .layers-inner-container .layer-container .layer-toolbar button.active i {
+  color: gold;
+}
+.canvas-layers .string-dialog {
+  display: flex;
+  gap: 4px;
+}
+.canvas-layers .string-dialog button {
+  font-size: 24px;
+  height: 32px;
+  min-height: 32px;
+}
+.canvas-layers.remove-layer-dialog .remove-layer-options-container {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.canvas-layers.remove-layer-dialog .remove-layer-options-container .remove-layer-option-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.canvas-layers.remove-layer-dialog .remove-layer-options-container .remove-layer-option-container .remove-layer-option-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+.canvas-layers.remove-layer-dialog .remove-layer-options-container .remove-layer-option-container .remove-layer-option-checkbox {
+  height: 18px;
+}
+.canvas-layers.remove-layer-dialog footer {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.canvas-layers.remove-layer-dialog footer button {
+  flex: 1;
+}

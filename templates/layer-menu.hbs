@@ -1,0 +1,23 @@
+<div class="layer-menu-container">
+    <fieldset class="layers-container">
+        <legend>{{localize "CanvasLayers.LayerMenu.LayersSection.Title"}}</legend>
+        <div class="layers-inner-container">
+            {{#each this.layers}}
+                <div class="layer-container">
+                    <div class="layer-title-container">
+                        {{#if ../isGM}}
+                            <i class="layer-grip fa-solid fa-grip-vertical" data-drag="layer-position" data-layer="{{this.id}}"></i>
+                        {{/if}}
+                        <div class="layer-title">{{this.name}}</div>
+                    </div>
+                    <div class="layer-toolbar">
+                        <button data-action="toggleActive" data-layer="{{this.id}}" title="{{localize "CanvasLayers.LayerMenu.LayersSection.ToggleActive"}}" class="{{#if this.active}}active{{/if}}"><i class="fa-solid fa-bolt"></i></button>
+                        <button data-action="editName" data-layer="{{this.id}}" title="{{localize "CanvasLayers.LayerMenu.LayersSection.EditName"}}"><i class="fa-solid fa-signature"></i></button>
+                        <button data-action="toggleFavorite" data-layer="{{this.id}}" title="{{localize "CanvasLayers.LayerMenu.LayersSection.Favorite"}}" class="{{#if this.favorite}}active{{/if}}"><i class="fa-solid fa-star"></i></button>
+                        <button data-action="removeLayer" data-layer="{{this.id}}" title="{{localize "CanvasLayers.LayerMenu.LayersSection.Remove"}}"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            {{/each}}
+        </div>
+    </fieldset>
+</div>
