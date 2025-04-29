@@ -11,7 +11,7 @@
   ],
   "compatibility": {
     "minimum": "13",
-    "verified": "13.340",
+    "verified": "13.341",
     "maximum": "13"
   },
   "esmodules": ["CanvasLayers.js"],

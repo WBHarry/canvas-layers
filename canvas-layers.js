@@ -19,7 +19,7 @@ export const ModuleFlags = {
 Hooks.once("init", () => {
     CONFIG.debug.hooks = true;
     setup();
-    loadTemplates([
+    foundry.applications.handlebars.loadTemplates([
         `modules/${MODULE_ID}/templates/canvas-layer-header.hbs`,
         `modules/${MODULE_ID}/templates/canvas-entity-layers.hbs`
     ]);
@@ -27,7 +27,7 @@ Hooks.once("init", () => {
     if (typeof libWrapper === "function") {
         libWrapper.register(
             MODULE_ID,
-            "Drawing.prototype.isVisible",
+            "foundry.canvas.placeables.Drawing.prototype.isVisible",
             function (wrapped, ...args) {
                 const canvasLayers = canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
                 if(!canvasLayers || Object.keys(canvasLayers) === 0) return wrapped(args);
