@@ -1,5 +1,5 @@
 Add and show/hide things on the canvas based on layers. 
-Good usecases:
 
-Layered Worldmap Information
-Add text in layers such as Regions, Cities and Places Of Interest so GM and Players can hide away bloating information.
+https://github.com/user-attachments/assets/6380441b-4ad4-42e3-bbda-c3a36c5e67e7
+
+
