@@ -23,6 +23,7 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         classes: ["canvas-layers", "layer-menu"],
         position: { width: 600, height: "auto" },
         actions: {
+            addNewLayer: this.addNewLayer,
             toggleActive: this.toggleActive,
             editName: this.editName,
             toggleFavorite: this.toggleFavorite,
@@ -71,13 +72,13 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
 
     async _prepareContext(_options) {
         const context = await super._prepareContext(_options);
-        context.layers = Object.values(this.scene.flags[MODULE_ID][ModuleFlags.Scene.CanvasLayers]).sort((a, b) => a.position - b.position).map(sceneLayer => {
+        context.layers = this.scene.flags?.[MODULE_ID]?.[ModuleFlags.Scene.CanvasLayers] ? Object.values(this.scene.flags[MODULE_ID][ModuleFlags.Scene.CanvasLayers]).sort((a, b) => a.position - b.position).map(sceneLayer => {
             const userFlag = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
             return {
                 ...sceneLayer,
                 active: userFlag?.[sceneLayer.id]?.active ?? false,
             };
-        });
+        }) : [];
         context.isGM = game.user.isGM;
 
         return context;
@@ -179,6 +180,24 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         this.render();
     }
 
+    static async addNewLayer() {
+        new Promise((resolve, reject) => {
+            new StringDialog(resolve, reject, '', game.i18n.format('CanvasLayers.UI.AddCanvasLayerTitle', { scene: game.canvas.scene.name })).render(true)
+        }).then(async name => {
+            const currentCanvasLayers = canvas.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers) ?? {};
+            const layerId = foundry.utils.randomID();
+            await canvas.scene.setFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers, {
+                ...currentCanvasLayers,
+                [layerId]: {
+                    id: layerId,
+                    name: name,
+                    position: Object.keys(currentCanvasLayers).length+1,
+                },
+            });
+            this.render();
+        });
+    }
+
     static async toggleActive(_, button) {
         const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
         await game.user.setFlag(MODULE_ID, ModuleFlags.User.CanvasLayers, {
@@ -225,39 +244,44 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         new Promise((resolve, reject) => {
             new RemoveLayerDialog(resolve, reject, this.scene.name, layer.name).render(true);
         }).then(async choices => {
-            if(choices.drawings) {
-                const connectedDrawings = this.scene.drawings.filter(x => {
-                    const canvasLayers = x.flags[MODULE_ID][ModuleFlags.Drawing.CanvasLayers];
-                    return canvasLayers.includes(button.dataset.layer);
-                });
+            const connectedDrawings = this.scene.drawings.filter(x => {
+                const canvasLayers = x.flags[MODULE_ID][ModuleFlags.Drawing.CanvasLayers];
+                return canvasLayers.includes(button.dataset.layer);
+            });
 
-                for(var drawing of connectedDrawings){
-                    const drawingLayers = drawing.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
-                    if(drawingLayers.length === 1)
-                    {
-                        await drawing.delete();
-                    }
-                    else {
-                        await drawing.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, drawingLayers.filter(x => x !== button.dataset.layer));
-                    }
+            for(var drawing of connectedDrawings) {
+                const drawingLayers = drawing.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
+                if(choices.drawings && drawingLayers.length === 1)
+                {
+                    await drawing.delete();
+                }
+                else {
+                    await drawing.unsetFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
+                    await drawing.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, drawingLayers.filter(x => x !== button.dataset.layer));
+                    drawing._object._refreshState();
                 }
             }
-            if(choices.layer) {
-                let position = 1;
-                const newLayers = Object.values(this.scene.flags[MODULE_ID][ModuleFlags.Scene.CanvasLayers]).sort((a, b) => a.position - b.position).reduce((acc, layer) => {
-                    if(layer.id !== button.dataset.layer) {
-                        acc[layer.id] = {
-                            ...layer,
-                            position,
-                        }
-                        position++;
-                    }
 
-                    return acc;
-                }, {});
-                await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}.-=${button.dataset.layer}`]: null });
-                await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}`]: newLayers });
+            let position = 1;
+            const newLayers = Object.values(this.scene.flags[MODULE_ID][ModuleFlags.Scene.CanvasLayers]).sort((a, b) => a.position - b.position).reduce((acc, layer) => {
+                if(layer.id !== button.dataset.layer) {
+                    acc[layer.id] = {
+                        ...layer,
+                        position,
+                    }
+                    position++;
+                }
+
+                return acc;
+            }, {});
+
+            for(var user of game.users) {
+                await user.update({ [`flags.${MODULE_ID}.${ModuleFlags.User.CanvasLayers}.-=${button.dataset.layer}`]: null });
             }
+
+            await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}.-=${button.dataset.layer}`]: null });
+            await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}`]: newLayers });
+            
 
             this.render();
         });

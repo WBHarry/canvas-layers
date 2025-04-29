@@ -1,6 +1,9 @@
 <div class="layer-menu-container">
     <fieldset class="layers-container">
-        <legend>{{localize "CanvasLayers.LayerMenu.LayersSection.Title"}}</legend>
+        <legend>
+            {{localize "CanvasLayers.LayerMenu.LayersSection.Title"}}
+            <i data-action="addNewLayer" class="fa-solid fa-plus layers-add-button clickable-icon"></i>
+        </legend>
         <div class="layers-inner-container">
             {{#each this.layers}}
                 <div class="layer-container">

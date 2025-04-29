@@ -8,3 +8,4 @@ packs/**/LOG
 packs/**/MANIFEST-*
 node_modules
 MapLayers.js.map
+CanvasLayers.js.map

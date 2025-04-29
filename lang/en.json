@@ -24,7 +24,7 @@
                 "Remove": "Clean Layer",
                 "RemoveMenu": {
                     "Title": "{scene} - {layer}",
-                    "RemoveConfirmationOptionText": "Select what about this layer you would like to remove. Connected drawings are only removed if they belong <strong>only</strong> to this layer, otherwise they are decoupled from this layer."
+                    "RemoveConfirmationOptionText": "Select any group of canvas placeables linked to this layer that you wish to delete. Selected placeables are deleted if they belong <strong>only</strong> to this layer, otherwise they are just decoupled from this layer as all others."
                 }
             }
         }

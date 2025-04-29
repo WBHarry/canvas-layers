@@ -9,7 +9,6 @@ export default class RemoveLayerDialog extends HandlebarsApplicationMixin(Applic
         this.scene = scene;
         this.layer = layer;
         this.choices = {
-            layer: true,
             drawings: false, 
         };
     }

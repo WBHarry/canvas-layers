@@ -1,6 +1,5 @@
 import { libWrapper } from "./libwrapperShim.js";
 import LayerMenu from "./module/LayerMenu.js";
-import StringDialog from "./module/StringDialog.js";
 import { setup } from "./setup.js";
 import Tagify from "@yaireo/tagify";
 
@@ -31,10 +30,10 @@ Hooks.once("init", () => {
             "Drawing.prototype.isVisible",
             function (wrapped, ...args) {
                 const canvasLayers = canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
-                if(!canvasLayers) return wrapped(args);
+                if(!canvasLayers || Object.keys(canvasLayers) === 0) return wrapped(args);
                 
                 const drawingUsedLayers = this.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
-                if(!drawingUsedLayers) return wrapped(args);
+                if(!drawingUsedLayers || drawingUsedLayers.length === 0) return wrapped(args);
 
                 const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
                 
@@ -49,35 +48,6 @@ Hooks.once("init", () => {
         );
     }
 });
-
-// Hooks.on("getSceneControlButtons", (controls) => {
-//     const drawingTools = Object.values(controls.drawings.tools);
-//     const buttonOrder = drawingTools.length + 1;
-//     controls.drawings.tools.canvasLayers = {
-//         button: true,
-//         icon: 'fa-solid fa-paint-roller',
-//         name: 'canvasLayers',
-//         onChange: async () => {
-//             new Promise((resolve, reject) => {
-//                 new StringDialog(resolve, reject, '', game.i18n.format('CanvasLayers.UI.AddCanvasLayerTitle', { scene: game.canvas.scene.name })).render(true)
-//             }).then(async name => {
-//                 const currentCanvasLayers = canvas.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers) ?? {};
-//                 const layerId = foundry.utils.randomID();
-//                 await canvas.scene.setFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers, {
-//                     ...currentCanvasLayers,
-//                     [layerId]: {
-//                         id: layerId,
-//                         name: name,
-//                         position: Object.keys(currentCanvasLayers).length+1,
-//                     },
-//                 });
-//             });
-//         },
-//         order: buttonOrder,
-//         title:  game.i18n.localize('CanvasLayers.UI.AddCanvasLayer'),
-//         visible: true,
-//     };
-// });
 
 Hooks.on("renderSceneNavigation", async (config, html, _, options) => {  
     if (options.parts && !options.parts.includes("scenes")) return;
@@ -94,7 +64,7 @@ Hooks.on("renderSceneNavigation", async (config, html, _, options) => {
 
         return a.position - b.position;
     }) : [];
-    if(layersData.length === 0) return;
+    // if(layersData.length === 0) return;
 
     /* 
         - Setup html nav as FlexRow
