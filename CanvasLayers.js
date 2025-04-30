@@ -914,7 +914,6 @@ Hooks.on("renderSceneNavigation", async (config, html, _, options) => {
 
         return a.position - b.position;
     }) : [];
-    // if(layersData.length === 0) return;
 
     /* 
         - Setup html nav as FlexRow

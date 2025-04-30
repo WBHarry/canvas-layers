@@ -1,10 +1,10 @@
 <div class="canvas-layer canvas-layer-outer-container">
     <div class="canvas-layers-container">
+        {{#if this.isGM}}<button class="ui-control canvas-layer-settings" title="{{localize "CanvasLayers.UI.LayerMenu"}}"><i class="fa-solid fa-gears"></i></button>{{/if}}
         {{#each this.layerData}}
             <button class="ui-control canvas-layer-container {{#if this.active}}active{{/if}}" data-layer="{{this.id}}">
                 {{this.name}}
             </button>
         {{/each}}
-        {{#if this.isGM}}<button class="ui-control canvas-layer-settings" title="{{localize "CanvasLayers.UI.LayerMenu"}}"><i class="fa-solid fa-gears"></i></button>{{/if}}
     </div>
 </div>
