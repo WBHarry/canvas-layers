@@ -127,7 +127,8 @@ Hooks.on("renderSceneNavigation", async (config, html, _, options) => {
 
 Hooks.on('createDrawing', async (document) => {
     if(!game.user.isGM) return;
-    const activeCanvasLayers = Object.values(game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers)).filter(x => x.active);
+    const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers) ?? {};
+    const activeCanvasLayers = Object.values(userLayers).filter(x => x.active);
     if(activeCanvasLayers.length === 0) return;
 
     await document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, activeCanvasLayers.map(x => x.id));
@@ -177,8 +178,17 @@ Hooks.on('preUpdateDrawing', (document, update) => {
     const drawingLayers = update.flags?.[MODULE_ID]?.[ModuleFlags.Drawing.CanvasLayers];
     if(drawingLayers && typeof drawingLayers === 'string'){
         const newLayers = JSON.parse(drawingLayers).map(x => x.value);
-        document.flags[MODULE_ID][ModuleFlags.Drawing.CanvasLayers] = newLayers;
+        if(document.flags[MODULE_ID]?.[ModuleFlags.Drawing.CanvasLayers]){
+            document.flags[MODULE_ID][ModuleFlags.Drawing.CanvasLayers] = newLayers;
+        }
+        else {
+            document.flags[MODULE_ID] = {
+                [ModuleFlags.Drawing.CanvasLayers]: newLayers,
+            };
+        }
+
         update.flags[MODULE_ID][ModuleFlags.Drawing.CanvasLayers] = newLayers;
+
         document._object._refreshState();
     }
 });

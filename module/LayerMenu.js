@@ -199,7 +199,7 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
     }
 
     static async toggleActive(_, button) {
-        const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
+        const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers) ?? {};
         await game.user.setFlag(MODULE_ID, ModuleFlags.User.CanvasLayers, {
             ...userLayers,
             [button.dataset.layer]: {
