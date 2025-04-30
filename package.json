@@ -1,16 +1,19 @@
 {
   "dependencies": {
-      "@yaireo/tagify": "^4.17.9",
-      "gulp": "^5.0.0",
-      "gulp-less": "^5.0.0",
-      "rollup": "^4.40.0"
+    "@yaireo/tagify": "^4.17.9",
+    "gulp": "^5.0.0",
+    "gulp-less": "^5.0.0",
+    "rollup": "^4.40.0"
   },
   "devDependencies": {
-      "concurrently": "^8.2.2",
-      "@rollup/plugin-node-resolve": "^15.2.3",
-      "rollup-plugin-postcss": "^4.0.2"
+    "@foundryvtt/foundryvtt-cli": "^1.0.4",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "concurrently": "^8.2.2",
+    "rollup-plugin-postcss": "^4.0.2"
   },
   "scripts": {
-    "start": "concurrently \"rollup -c --watch\" \"node C:/FoundryDev/resources/app/main.js --dataPath=C:/FoundryDevFiles  --noupnp\" \"gulp\""
+    "start": "concurrently \"rollup -c --watch\" \"node C:/FoundryDev/resources/app/main.js --dataPath=C:/FoundryDevFiles  --noupnp\" \"gulp\"",
+    "pushLDBtoYML": "node ./tools/pushLDBtoYML.mjs",
+    "pullYMLtoLDB": "node ./tools/pullYMLtoLDB.mjs"
   }
 }

@@ -2,6 +2,7 @@ import { libWrapper } from "./libwrapperShim.js";
 import LayerMenu from "./module/LayerMenu.js";
 import { setup } from "./setup.js";
 import Tagify from "@yaireo/tagify";
+import * as macros from "./scripts/macros.js";
 
 export const MODULE_ID = 'canvas-layers';
 export const ModuleFlags = {
@@ -17,8 +18,8 @@ export const ModuleFlags = {
 };
 
 Hooks.once("init", () => {
-    CONFIG.debug.hooks = true;
     setup();
+    game.modules.get(MODULE_ID).macros = macros;
     foundry.applications.handlebars.loadTemplates([
         `modules/${MODULE_ID}/templates/canvas-layer-header.hbs`,
         `modules/${MODULE_ID}/templates/canvas-entity-layers.hbs`

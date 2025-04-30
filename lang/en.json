@@ -27,6 +27,17 @@
                     "RemoveConfirmationOptionText": "Select any group of canvas placeables linked to this layer that you wish to delete. Selected placeables are deleted if they belong <strong>only</strong> to this layer, otherwise they are just decoupled from this layer as all others."
                 }
             }
+        },
+        "AddToLayersMenu": {
+            "Title": "Add To Layers",
+            "Hint": "Using this macro will overwrite any existing layers on the selected canvas placeables.",
+            "SelectedLayers": "Selected Layers",
+            "OverwriteLayers": "Overwrite existing layers with selected?",
+            "SetLayersButton": "Set Layers"
+        },
+        "Errors": {
+            "NoSceneLayers": "You have no layers on this scene to use!",
+            "NoDrawingsSelected": "You have no drawings currently selected!"
         }
     }    
 }

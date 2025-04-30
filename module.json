@@ -14,6 +14,18 @@
     "verified": "13.341",
     "maximum": "13"
   },
+  "packs": [
+    {
+      "name": "canvas-layers-macros",
+      "label": "Canvas Layers Macros",
+      "path": "packs/canvas-layers",
+      "type": "Macro",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
   "esmodules": ["CanvasLayers.js"],
   "styles": ["styles/canvas-layers.css"],
   "socket": true,

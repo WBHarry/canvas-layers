@@ -1,0 +1,13 @@
+<div class="add-to-layer-container">
+    <div>{{localize "CanvasLayers.AddToLayersMenu.Hint"}}</div>
+    <h4>{{localize "CanvasLayers.AddToLayersMenu.SelectedLayers"}}</h4>
+    <input class="add-to-layer-tagify" value="{{this.layers}}" />
+    <div class="canvas-form-group">
+        <label class="form-label">{{localize "CanvasLayers.AddToLayersMenu.OverwriteLayers"}}</label>
+        <input type="checkbox" name="overwrite" {{checked this.overwrite}} />
+    </div>
+    <footer>
+        <button data-action="setLayers">{{localize "CanvasLayers.AddToLayersMenu.SetLayersButton"}}</button>
+        <button data-action="close">{{localize "CanvasLayers.General.Cancel"}}</button>
+    </footer>
+</div>

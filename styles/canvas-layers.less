@@ -2,8 +2,16 @@
 @import 'stylesheets/layer-menu.less';
 @import (inline) "../node_modules/@yaireo/tagify/dist/tagify.css";
 
+.theme-dark {
+    .canvas-layers{
+        .tagify {
+            background-color: var(--color-cool-4);
+        }
+    }
+}
+
 .canvas-layers {
-    &.tagify {
+    .tagify {
         background-color: rgba(0, 0, 0, 0.1);
         color: var(--color-border);
         border-color: var(--color-border);
@@ -72,6 +80,42 @@
         h4 {
             text-align: center;
             margin: 0;
+        }
+    }
+
+    &.add-to-layer-dialog {
+        .add-to-layer-container{
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            h4 {
+                margin: 0;
+                text-align: center;
+            }
+
+            .canvas-form-group {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+
+                label {
+                    white-space: nowrap;
+                }
+            }
+
+            .add-to-layer-tagify {
+                width: 100%;
+            }
+
+            footer {
+                display: flex;
+                gap: 8px;
+
+                button {
+                    flex: 1;
+                }
+            }
         }
     }
 }
