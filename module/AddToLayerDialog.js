@@ -74,7 +74,7 @@ export default class AddToLayerDialog extends HandlebarsApplicationMixin(Applica
 
         tagifyInput.addEventListener('change', (event) => {
             event.stopPropagation();
-            this.layers = JSON.parse(event.currentTarget.value).map(x => ({ id: x.value, name: x.name }));
+            this.layers = event.currentTarget.value ? JSON.parse(event.currentTarget.value).map(x => ({ id: x.value, name: x.name })) : [];
             this.render();
         });
     }
