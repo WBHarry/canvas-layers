@@ -4,10 +4,10 @@ import { MODULE_ID, ModuleFlags } from "../canvas-layers";
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
 export default class AddToLayerDialog extends HandlebarsApplicationMixin(ApplicationV2) {
-    constructor(sceneLayers, drawings) {
+    constructor(sceneLayers, placeables) {
         super({});
 
-        this.drawings = drawings;
+        this.placeables = placeables;
         this.sceneLayers = sceneLayers;
         this.layers = [];
         this.overwrite = false;
@@ -81,8 +81,6 @@ export default class AddToLayerDialog extends HandlebarsApplicationMixin(Applica
 
     async _prepareContext(_options) {
         const context = await super._prepareContext(_options);
-        context.drawings = this.drawings;
-        context.sceneLayers = this.sceneLayers;
         context.layers = this.layers.map(x => x.name);
         context.overwrite = this.overwrite;
 
@@ -96,20 +94,20 @@ export default class AddToLayerDialog extends HandlebarsApplicationMixin(Applica
     }
 
     static async setLayers() {
-        for(var drawingObject of this.drawings) {
-            const drawing = drawingObject[1];
+        for(var placeableObject of this.placeables) { // Doesn't follow ModuleFlags convention. Will it need to be changed?
+            const placeable = placeableObject[1];
             if(this.overwrite) {
-                await drawing.document.unsetFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
-                await drawing.document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, this.layers.map(x => x.id));
+                await placeable.document.unsetFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
+                await placeable.document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, this.layers.map(x => x.id));
             }
             else {
-                await drawing.document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, [
-                    ...(drawing.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers) ?? []),
+                await placeable.document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, [
+                    ...(placeable.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers) ?? []),
                     ...this.layers.map(x => x.id),
                 ])
             }
 
-            drawing._refreshState();
+            placeable._refreshState();
         }
 
         this.close();

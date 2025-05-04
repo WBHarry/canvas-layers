@@ -38,7 +38,7 @@
         "Errors": {
             "GMOnly": "This macro only works for the GM!",
             "NoSceneLayers": "You have no layers on this scene to use!",
-            "NoDrawingsSelected": "You have no drawings currently selected!"
+            "NoPlaceablesSelected": "You have no useable canvas objects currently selected!"
         }
     }    
 }

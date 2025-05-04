@@ -856,10 +856,10 @@ var t="&#8203;";function e(t,e){(null==e||e>t.length)&&(e=t.length);for(var i=0,
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
 class AddToLayerDialog extends HandlebarsApplicationMixin(ApplicationV2) {
-    constructor(sceneLayers, drawings) {
+    constructor(sceneLayers, placeables) {
         super({});
 
-        this.drawings = drawings;
+        this.placeables = placeables;
         this.sceneLayers = sceneLayers;
         this.layers = [];
         this.overwrite = false;
@@ -933,8 +933,6 @@ class AddToLayerDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _prepareContext(_options) {
         const context = await super._prepareContext(_options);
-        context.drawings = this.drawings;
-        context.sceneLayers = this.sceneLayers;
         context.layers = this.layers.map(x => x.name);
         context.overwrite = this.overwrite;
 
@@ -948,20 +946,20 @@ class AddToLayerDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     static async setLayers() {
-        for(var drawingObject of this.drawings) {
-            const drawing = drawingObject[1];
+        for(var placeableObject of this.placeables) { // Doesn't follow ModuleFlags convention. Will it need to be changed?
+            const placeable = placeableObject[1];
             if(this.overwrite) {
-                await drawing.document.unsetFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
-                await drawing.document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, this.layers.map(x => x.id));
+                await placeable.document.unsetFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
+                await placeable.document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, this.layers.map(x => x.id));
             }
             else {
-                await drawing.document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, [
-                    ...(drawing.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers) ?? []),
+                await placeable.document.setFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers, [
+                    ...(placeable.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers) ?? []),
                     ...this.layers.map(x => x.id),
                 ]);
             }
 
-            drawing._refreshState();
+            placeable._refreshState();
         }
 
         this.close();
@@ -981,12 +979,13 @@ const SetLayers = () => {
     }
 
     const drawings = game.canvas.drawings.controlledObjects;
-    if(drawings.size === 0) {
-        ui.notifications.error(game.i18n.localize("CanvasLayers.Errors.NoDrawingsSelected"));
+    const tiles = game.canvas.tiles.controlledObjects;
+    if(drawings.size === 0 && tiles.size === 0) {
+        ui.notifications.error(game.i18n.localize("CanvasLayers.Errors.NoPlaceablesSelected"));
         return;
     }
 
-    new AddToLayerDialog(Object.values(sceneLayers), drawings).render(true);
+    new AddToLayerDialog(Object.values(sceneLayers), drawings.size > 0 ? drawings : tiles).render(true);
 };
 
 var macros = /*#__PURE__*/Object.freeze({

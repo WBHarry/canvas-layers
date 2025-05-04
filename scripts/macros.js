@@ -14,10 +14,11 @@ export const SetLayers = () => {
     }
 
     const drawings = game.canvas.drawings.controlledObjects;
-    if(drawings.size === 0) {
-        ui.notifications.error(game.i18n.localize("CanvasLayers.Errors.NoDrawingsSelected"));
+    const tiles = game.canvas.tiles.controlledObjects;
+    if(drawings.size === 0 && tiles.size === 0) {
+        ui.notifications.error(game.i18n.localize("CanvasLayers.Errors.NoPlaceablesSelected"));
         return;
     }
 
-    new AddToLayerDialog(Object.values(sceneLayers), drawings).render(true);
+    new AddToLayerDialog(Object.values(sceneLayers), drawings.size > 0 ? drawings : tiles).render(true);
 };
