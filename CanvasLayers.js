@@ -926,7 +926,7 @@ class AddToLayerDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
         tagifyInput.addEventListener('change', (event) => {
             event.stopPropagation();
-            this.layers = JSON.parse(event.currentTarget.value).map(x => ({ id: x.value, name: x.name }));
+            this.layers = event.currentTarget.value ? JSON.parse(event.currentTarget.value).map(x => ({ id: x.value, name: x.name })) : [];
             this.render();
         });
     }
@@ -969,6 +969,11 @@ class AddToLayerDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 
 const SetLayers = () => {
+    if(!game.user.isGM) {
+        ui.notifications.error(game.i18n.localize("CanvasLayers.Errors.GMOnly"));
+        return;
+    }
+
     const sceneLayers = game.canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers) ?? {};
     if(Object.keys(sceneLayers).length === 0) {
         ui.notifications.error(game.i18n.localize("CanvasLayers.Errors.NoSceneLayers"));
@@ -987,127 +992,6 @@ const SetLayers = () => {
 var macros = /*#__PURE__*/Object.freeze({
   __proto__: null,
   SetLayers: SetLayers
-});
-
-const MODULE_ID = 'canvas-layers';
-const ModuleFlags = {
-    Scene: {
-        CanvasLayers: 'canvas-layers',
-    },
-    Drawing: {
-        CanvasLayers: 'canvas-layers',
-    },
-    User: {
-        CanvasLayers: 'canvas-layers',
-    },
-};
-
-Hooks.once("init", () => {
-    setup();
-    game.modules.get(MODULE_ID).macros = macros;
-    foundry.applications.handlebars.loadTemplates([
-        `modules/${MODULE_ID}/templates/canvas-layer-header.hbs`,
-        `modules/${MODULE_ID}/templates/canvas-entity-layers.hbs`
-    ]);
-
-    if (typeof libWrapper === "function") {
-        libWrapper.register(
-            MODULE_ID,
-            "foundry.canvas.placeables.Drawing.prototype.isVisible",
-            function (wrapped, ...args) {
-                const canvasLayers = canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
-                if(!canvasLayers || Object.keys(canvasLayers) === 0) return wrapped(args);
-                
-                const drawingUsedLayers = this.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
-                if(!drawingUsedLayers || drawingUsedLayers.length === 0) return wrapped(args);
-
-                const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
-                
-                const canvasLayerValues = Object.values(canvasLayers);
-                const matchingLayers = drawingUsedLayers.filter(x => canvasLayerValues.some(value => value.id === x));
-                if(userLayers && matchingLayers.length > 0 && Object.values(userLayers).some(userLayer => userLayer.active && matchingLayers.some(x => userLayer.id === x))) {
-                    return wrapped(args);
-                }
-                
-                return false;
-            }
-        );
-    }
-});
-
-Hooks.on("renderSceneNavigation", async (config, html, _, options) => {  
-    if (options.parts && !options.parts.includes("scenes")) return;
-
-    const layersFlag = game.canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
-    const userFlag = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
-    const layersData = layersFlag ? Object.values(layersFlag).map(x => ({
-        ...x,
-        active: userFlag?.[x.id] ? userFlag[x.id].active : false,
-    })).sort((a, b) => {
-        if(a.favorite && !b.favorite) return -1;
-        else if(!a.favorite && b.favorite) return 1;
-        else if(a.favorite && b.favorite) return a.name.localeCompare(b.name);
-
-        return a.position - b.position;
-    }) : [];
-
-    /* 
-        - Setup html nav as FlexRow
-        - Move the originalChildren into underlying containers to have a flex order 
-    */
-    const originalChildrenIds =[];
-    html.parentElement.style = "flex: 1;";
-    html.childNodes.forEach(x => originalChildrenIds.push(x.id));
-    html.classList = ['flexrow'];
-    html.style = "align-items: start;";
-    html.insertAdjacentHTML('afterbegin', '<div id="canvasLayerScenes" style="flex: none; display: flex; flex-direction: column; width: 200px; overflow: visible; max-height: 100%; gap: 0.5rem; position: relative;"></div>');
-
-    const canvasLayersSceneContainer = html.querySelector('#canvasLayerScenes');
-    for(var childIds of originalChildrenIds){
-        const childNode = html.querySelector(`#${childIds}`);        if(childIds === 'scene-navigation-expand') {
-            childNode.style = "position: initial;";
-            html.append(childNode);
-        }
-        else {
-            canvasLayersSceneContainer.append(childNode);
-        }
-    }
-
-    /* Insert custom HTML template last in the new FlexRow container. */
-    const canvasLayerTemplate = Handlebars.partials[`modules/${MODULE_ID}/templates/canvas-layer-header.hbs`]({ layerData: layersData, isGM: game.user.isGM }, {allowProtoMethodsByDefault: true, allowProtoPropertiesByDefault: true});
-    html.insertAdjacentHTML('beforeend', canvasLayerTemplate);
-    const canvasLayerContainer = html.querySelector('.canvas-layers-container');
-
-    canvasLayerContainer.querySelectorAll('.canvas-layer-container').forEach(event => {
-        event.addEventListener('click', async (event) => {
-            const canvasLayers = game.user.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers) ?? {};
-            const layerId = event.currentTarget.dataset.layer;
-            await game.user.setFlag(MODULE_ID, ModuleFlags.User.CanvasLayers, {
-                ...canvasLayers,
-                [layerId]: {
-                    id: layerId,
-                    active: canvasLayers[layerId] ? !canvasLayers[layerId].active : true,
-                }
-            });
-            for(var drawing of game.canvas.drawings.children.flatMap(x => x.children)) {
-                if(!drawing) continue;
-
-                const drawingFlags = drawing.document.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
-                if(drawingFlags?.includes(layerId)){
-                    drawing._refreshState();
-                }
-            }
-
-            foundry.applications.instances.get('canvas-layers-layer-menu')?.render(true);
-            foundry.ui.nav.render(true);
-        });
-    });
-    if(game.user.isGM){
-        canvasLayerContainer.querySelector('.canvas-layer-settings').addEventListener('click', event => {
-           const layerMenu = new LayerMenu(game.canvas.scene);
-           layerMenu.render(true);
-        });
-    }
 });
 
 Hooks.on('createDrawing', async (document) => {
@@ -1175,6 +1059,251 @@ Hooks.on('preUpdateDrawing', (document, update) => {
         update.flags[MODULE_ID][ModuleFlags.Drawing.CanvasLayers] = newLayers;
 
         document._object._refreshState();
+    }
+});
+
+const registerLibwrapperDrawing = () => {
+    libWrapper.register(
+        MODULE_ID,
+        "foundry.canvas.placeables.Drawing.prototype.isVisible",
+        function (wrapped, ...args) {
+            const canvasLayers = canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
+            if(!canvasLayers || Object.keys(canvasLayers) === 0) return wrapped(args);
+            
+            const drawingUsedLayers = this.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
+            if(!drawingUsedLayers || drawingUsedLayers.length === 0) return wrapped(args);
+
+            const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
+            
+            const canvasLayerValues = Object.values(canvasLayers);
+            const matchingLayers = drawingUsedLayers.filter(x => canvasLayerValues.some(value => value.id === x));
+            if(userLayers && matchingLayers.length > 0 && Object.values(userLayers).some(userLayer => userLayer.active && matchingLayers.some(x => userLayer.id === x))) {
+                return wrapped(args);
+            }
+            
+            return false;
+        }
+    );
+};
+
+function safeJSONParse(jsonText) {
+    try {
+        const jsonResult = JSON.parse(jsonText);
+        return jsonResult;
+    } catch (e) {
+        return null;
+    }
+}
+
+Hooks.on('createTile', async (document) => {
+    if(!game.user.isGM) return;
+    const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers) ?? {};
+    const activeCanvasLayers = Object.values(userLayers).filter(x => x.active);
+    if(activeCanvasLayers.length === 0) return;
+
+    await document.setFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers, activeCanvasLayers.map(x => x.id));
+});
+
+Hooks.on('renderTileConfig', async (config, html, _, options) => {
+    if(!game.user.isGM || (options.parts && !options.parts.includes('tabs'))) return;
+
+    const canvasLayers = game.canvas.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
+    if(!canvasLayers || Object.keys(canvasLayers).length === 0) return;
+
+    const layersActive = config.tabGroups.sheet === 'layers';
+    html.querySelector('.sheet-tabs').insertAdjacentHTML('beforeend', `
+        <a data-action="tab" data-group="sheet" data-tab="layers"${layersActive ? ' class="active"': ''}>
+            <i class="fa-solid fa-paint-roller" inert=""></i>
+            <span>${game.i18n.localize('CanvasLayers.General.Layers')}</span>
+        </a>    
+    `);
+
+    const tileLayers = config.document.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers) ?? [];
+    const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers) ?? {};
+    const userLayerValues = Object.values(userLayers);
+    const selectedLayers = options.preview ? Object.values(canvasLayers).filter(x => userLayerValues.some(y => x.id === y.id && y.active)).map(x => x.name) : Object.values(canvasLayers).filter(x => tileLayers.includes(x.id)).map(x => x.name);
+
+    const canvasEntityLayersTemplate = Handlebars.partials[`modules/${MODULE_ID}/templates/canvas-entity-layers.hbs`]({ preview: options.preview, active: layersActive, updatePath: `flags.${MODULE_ID}.${ModuleFlags.Tile.CanvasLayers}`, selectedLayers: selectedLayers }, {allowProtoMethodsByDefault: true, allowProtoPropertiesByDefault: true});
+    html.querySelector('.window-content .form-footer').insertAdjacentHTML('beforebegin', canvasEntityLayersTemplate);
+    const canvasEntityLayersTab = html.querySelector('.window-content div[data-tab="layers"]');
+
+    const layerOptions = Object.values(game.canvas.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers)).map(x => ({ value: x.id, name: x.name }));
+    const input = canvasEntityLayersTab.querySelector('.layer-tagify');
+    if(input) {
+        new Q(input, {
+            tagTextProp: "name",
+            enforceWhitelist: true,
+            whitelist: layerOptions,
+            dropdown: {
+                mapValueTo: "name",
+                searchKeys: ["name"],
+                enabled: 0,
+                maxItems: 20,
+                closeOnSelect: true,
+                highlightFirst: false,
+            },
+        });
+    }  
+});
+
+Hooks.on('refreshTile', (tile, test) => {
+    const tileLayersData = tile.document.flags?.[MODULE_ID]?.[ModuleFlags.Tile.CanvasLayers];
+    const tileLayers = Array.isArray(tileLayersData) ? tileLayersData[0] : tileLayersData; // Strange. Better way to do it?
+    if(tileLayers !== undefined && typeof tileLayers === 'string'){
+        const newLayers = tileLayers ? (safeJSONParse(tileLayers)?.map(x => x.value) ?? null) : [];
+        if(!newLayers) return;
+        
+        if(tile.document.flags[MODULE_ID]?.[ModuleFlags.Tile.CanvasLayers] !== undefined){
+            tile.document.flags[MODULE_ID][ModuleFlags.Tile.CanvasLayers] = newLayers;
+        }
+        else {
+            tile.document.flags[MODULE_ID] = {
+                [ModuleFlags.Tile.CanvasLayers]: newLayers,
+            };
+        }
+
+        tile._refreshState();
+    }
+});
+
+const registerLibwrapperTile = () => {
+    libWrapper.register(
+        MODULE_ID,
+        "foundry.canvas.placeables.Tile.prototype.isVisible",
+        function (wrapped, ...args) {
+            if(this.isPreview) return wrapped(args);
+
+            const canvasLayers = canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
+            if(!canvasLayers || Object.keys(canvasLayers) === 0) return wrapped(args);
+            
+            const tileUsedLayers = this.document.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers);
+            if(!tileUsedLayers || typeof tileUsedLayers === 'string' || tileUsedLayers.length === 0) return wrapped(args);
+
+            const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
+            
+            const canvasLayerValues = Object.values(canvasLayers);
+            const matchingLayers = tileUsedLayers.filter(x => canvasLayerValues.some(value => value.id === x));
+            if(userLayers && matchingLayers.length > 0 && Object.values(userLayers).some(userLayer => userLayer.active && matchingLayers.some(x => userLayer.id === x))) {
+                return wrapped(args);
+            }
+            
+            return false;
+        }
+    );
+};
+
+const MODULE_ID = 'canvas-layers';
+const ModuleFlags = {
+    Scene: {
+        CanvasLayers: 'canvas-layers',
+    },
+    Drawing: {
+        CanvasLayers: 'canvas-layers',
+    },
+    Tile: {
+        CanvasLayers: 'canvas-layers',
+    },
+    User: {
+        CanvasLayers: 'canvas-layers',
+    },
+};
+
+Hooks.once("init", () => {
+    setup();
+    game.modules.get(MODULE_ID).macros = macros;
+    foundry.applications.handlebars.loadTemplates([
+        `modules/${MODULE_ID}/templates/canvas-layer-header.hbs`,
+        `modules/${MODULE_ID}/templates/canvas-entity-layers.hbs`
+    ]);
+
+    if (typeof libWrapper === "function") {
+        registerLibwrapperDrawing();
+        registerLibwrapperTile();
+    }
+});
+
+Hooks.on("renderSceneNavigation", async (config, html, _, options) => {  
+    if (options.parts && !options.parts.includes("scenes")) return;
+
+    const layersFlag = game.canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
+    const userFlag = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
+    const layersData = layersFlag ? Object.values(layersFlag).map(x => ({
+        ...x,
+        active: userFlag?.[x.id] ? userFlag[x.id].active : false,
+    })).sort((a, b) => {
+        if(a.favorite && !b.favorite) return -1;
+        else if(!a.favorite && b.favorite) return 1;
+        else if(a.favorite && b.favorite) return a.name.localeCompare(b.name);
+
+        return a.position - b.position;
+    }) : [];
+
+    /* 
+        - Setup html nav as FlexRow
+        - Move the originalChildren into underlying containers to have a flex order 
+    */
+    const originalChildrenIds =[];
+    html.parentElement.style = "flex: 1;";
+    html.childNodes.forEach(x => originalChildrenIds.push(x.id));
+    html.classList = ['flexrow'];
+    html.style = "align-items: start;";
+    html.insertAdjacentHTML('afterbegin', '<div id="canvasLayerScenes" style="flex: none; display: flex; flex-direction: column; width: 200px; overflow: visible; max-height: 100%; gap: 0.5rem; position: relative;"></div>');
+
+    const canvasLayersSceneContainer = html.querySelector('#canvasLayerScenes');
+    for(var childIds of originalChildrenIds){
+        const childNode = html.querySelector(`#${childIds}`);        if(childIds === 'scene-navigation-expand') {
+            childNode.style = "position: initial;";
+            html.append(childNode);
+        }
+        else {
+            canvasLayersSceneContainer.append(childNode);
+        }
+    }
+
+    /* Insert custom HTML template last in the new FlexRow container. */
+    const canvasLayerTemplate = Handlebars.partials[`modules/${MODULE_ID}/templates/canvas-layer-header.hbs`]({ layerData: layersData, isGM: game.user.isGM }, {allowProtoMethodsByDefault: true, allowProtoPropertiesByDefault: true});
+    html.insertAdjacentHTML('beforeend', canvasLayerTemplate);
+    const canvasLayerContainer = html.querySelector('.canvas-layers-container');
+
+    canvasLayerContainer.querySelectorAll('.canvas-layer-container').forEach(event => {
+        event.addEventListener('click', async (event) => {
+            const canvasLayers = game.user.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers) ?? {};
+            const layerId = event.currentTarget.dataset.layer;
+            await game.user.setFlag(MODULE_ID, ModuleFlags.User.CanvasLayers, {
+                ...canvasLayers,
+                [layerId]: {
+                    id: layerId,
+                    active: canvasLayers[layerId] ? !canvasLayers[layerId].active : true,
+                }
+            });
+
+            for(var drawing of game.canvas.drawings.children.flatMap(x => x.children)) {
+                if(!drawing) continue;
+
+                const drawingFlags = drawing.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
+                if(drawingFlags?.includes(layerId)){
+                    drawing._refreshState();
+                }
+            }
+
+            for(var tile of game.canvas.tiles.children.flatMap(x => x.children)) {
+                if(!tile) continue;
+
+                const tileFlags = tile.document.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers);
+                if(tileFlags?.includes(layerId)){
+                    tile._refreshState();
+                }
+            }
+
+            foundry.applications.instances.get('canvas-layers-layer-menu')?.render(true);
+            foundry.ui.nav.render(true);
+        });
+    });
+    if(game.user.isGM){
+        canvasLayerContainer.querySelector('.canvas-layer-settings').addEventListener('click', event => {
+           const layerMenu = new LayerMenu(game.canvas.scene);
+           layerMenu.render(true);
+        });
     }
 });
 
