@@ -16,11 +16,13 @@ export const getUserSceneFlags = (sceneId) => {
     return flags[scene.id] ?? {};
 };
 
-export const setUserSceneFlags = async (layerId, update) => {
-    if(!game.canvas.scene) return;
-    const flags = getUserSceneFlags();
+export const setUserSceneFlags = async (layerId, update, sceneId) => {
+    const scene = sceneId ?? game.canvas.scene?.id ;
+    if(!scene) return;
+
+    const flags = getUserSceneFlags(sceneId);
     const test = {
-        [game.canvas.scene.id]: {
+        [scene]: {
             [layerId]: {
                 id: layerId,
                 ...(flags?.[layerId] ?? {}),

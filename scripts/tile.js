@@ -93,12 +93,9 @@ export const registerLibwrapperTile = () => {
             const matchingLayers = canvasLayerValues.filter(x => tileUsedLayers.some(value => value === x.id));
             if(userLayers && matchingLayers.length > 0 && (Object.values(userLayers).some(userLayer => {
                 const matchingLayer = matchingLayers.some(x => userLayer.id === x.id);
-                // if(matchingLayer?.type === layerTypes.controlled.value && !game.user.isGM){
-                //     return matchingLayer.activePlayers.includes(game.user.is);
-                // }
 
                 return userLayer.active && matchingLayer;
-            }) || (!game.user.isGM && matchingLayers.some(x => x.type === layerTypes.controlled.value && x.controlledPlayers.includes(game.user.id))))) {
+            }) || (!game.user.isGM && matchingLayers.some(x => x.type === layerTypes.controlled.value && x.controlledPlayers?.includes(game.user.id))))) {
                 return wrapped(args);
             }
             

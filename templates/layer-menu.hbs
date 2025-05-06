@@ -15,7 +15,7 @@
                         <div class="layer-title">{{this.name}}</div>
                     </div>
                     <div class="layer-toolbar">
-                        <select name="{{concat this.id ".type"}}" data-dtype="Number">
+                        <select class="layer-type-input" data-id="{{this.id}}" data-layer="{{this.id}}">
                             {{selectOptions ../layerTypes selected=this.type valueAttr="value" labelAttr="name" }}
                         </select>
                         <button data-action="toggleActive" data-layer="{{this.id}}" title="{{localize "CanvasLayers.LayerMenu.LayersSection.ToggleActive"}}" class="{{#if this.active}}active{{/if}}"><i class="fa-solid fa-bolt"></i></button>

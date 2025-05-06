@@ -1,6 +1,7 @@
-import { layerTypes, MODULE_ID, ModuleFlags } from "../data/Constants.js";
+import { layerTypes, MODULE_ID, ModuleFlags, SOCKET_ID } from "../data/Constants.js";
 import { ExpandedDragDrop } from "../scripts/expandedDragDrop.js";
 import { getUserSceneFlags, setUserSceneFlags } from "../scripts/helpers.js";
+import { socketEvent } from "../scripts/sockets.js";
 import GuideDialog from "./GuideDialog.js";
 import RemoveLayerDialog from "./RemoveLayerDialog.js";
 import StringDialog from "./StringDialog.js";
@@ -88,13 +89,33 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         return context;
     }
 
-    static async updateData(event, element, formData) {
-        const data = foundry.utils.expandObject(formData.object);
-        const canvasLayers = this.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
-        await this.scene.setFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers, foundry.utils.mergeObject(
-            canvasLayers,
-            data,
-        ));
+    static async updateData() {
+        this.render();
+    }
+
+    _attachPartListeners(partId, htmlElement, options) {
+        super._attachPartListeners(partId, htmlElement, options);
+    
+        htmlElement.querySelectorAll('.layer-type-input').forEach(input => input.addEventListener('change', this.layerTypeUpdate.bind(this)));
+    }
+
+    async layerTypeUpdate(event) {
+        const button = event.currentTarget;
+        const newType = Number.parseInt(event.currentTarget.value);
+
+        await this.scene.setFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers, {
+            [`${button.dataset.id}`]: {
+                type: newType,
+                controlledPlayers: null,
+            }
+        });
+
+        if(newType === layerTypes.controlled.value) {
+            game.socket.emit(SOCKET_ID, {
+                action: socketEvent.closeLayer,
+                data: { scene: this.scene.id, layer: button.dataset.layer },
+            });
+        }
 
         foundry.ui.nav.render(true);
         this.render();
@@ -215,7 +236,6 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
 
     static async toggleActive(event, button) {
         event.preventDefault();
-        const userLayers = getUserSceneFlags(this.scene.id);
         await setUserSceneFlags(button.dataset.layer, (layer) => ({
             active: !layer.active,
         }));
@@ -277,6 +297,24 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
                 }
             }
 
+            const connectedTiles = this.scene.tiles.filter(x => {
+                const canvasLayers = x.flags[MODULE_ID][ModuleFlags.Tile.CanvasLayers];
+                return canvasLayers.includes(button.dataset.layer);
+            });
+
+            for(var tile of connectedTiles) {
+                const tileLayers = tile.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers);
+                if(choices.tiles && tileLayers.length === 1)
+                {
+                    await tile.delete();
+                }
+                else {
+                    await tile.unsetFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers);
+                    await tile.setFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers, tileLayers.filter(x => x !== button.dataset.layer));
+                    tile._object._refreshState();
+                }
+            }
+
             let position = 1;
             const newLayers = Object.values(this.scene.flags[MODULE_ID][ModuleFlags.Scene.CanvasLayers]).sort((a, b) => a.position - b.position).reduce((acc, layer) => {
                 if(layer.id !== button.dataset.layer) {
@@ -297,6 +335,10 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
             await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}.-=${button.dataset.layer}`]: null });
             await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}`]: newLayers });
             
+            game.socket.emit(SOCKET_ID, {
+                action: socketEvent.updatePlaceableCollection,
+                data: { sceneId: this.scene.id, types: ['drawings', 'tiles'], placeableIds: [...connectedDrawings.map(x => x.id), ...connectedTiles.map(x => x.id)]},
+            });
 
             this.render();
         });

@@ -21,5 +21,5 @@ export const SetLayers = () => {
         return;
     }
 
-    new AddToLayerDialog(Object.values(sceneLayers), drawings.size > 0 ? drawings : tiles).render(true);
+    new AddToLayerDialog(game.canvas.scene, Object.values(sceneLayers), drawings.size > 0 ? drawings : tiles).render(true);
 };

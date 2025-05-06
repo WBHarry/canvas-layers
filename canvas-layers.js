@@ -135,3 +135,22 @@ Hooks.on(socketEvent.updateView, async ({ scene, layer, changedPlayers }) => {
         refreshPlaceables(game.scenes.get(scene), layer);
     }
 });
+
+Hooks.on(socketEvent.closeLayer, async ({ scene, layer }) => {
+    if(!game.user.isGM) {
+        await setUserSceneFlags(layer, () => ({
+            active: false,
+        }), scene);
+
+        refreshPlaceables(game.scenes.get(scene), layer);
+    }
+});
+
+Hooks.on(socketEvent.updatePlaceableCollection, async ({ sceneId, types, placeableIds }) => {
+    const scene = game.scenes.get(sceneId);
+    
+    const placeables = types.flatMap(type => type === 'drawings' ? scene.drawings.filter(x => placeableIds.includes(x.id)) : scene.tiles.filter(x => placeableIds.includes(x.id)));
+    for(var placeable of placeables) {
+        placeable._object._refreshState();
+    }
+});

@@ -3,6 +3,7 @@
         "General": {
             "Layer": "Layer",
             "Layers": "Layers",
+            "Tiles": "Tiles",
             "Drawings": "Drawings",
             "Confirm": "Confirm",
             "Cancel": "Cancel"

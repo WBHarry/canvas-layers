@@ -190,11 +190,13 @@ const getUserSceneFlags = (sceneId) => {
     return flags[scene.id] ?? {};
 };
 
-const setUserSceneFlags = async (layerId, update) => {
-    if(!game.canvas.scene) return;
-    const flags = getUserSceneFlags();
+const setUserSceneFlags = async (layerId, update, sceneId) => {
+    const scene = sceneId ?? game.canvas.scene?.id ;
+    if(!scene) return;
+
+    const flags = getUserSceneFlags(sceneId);
     const test = {
-        [game.canvas.scene.id]: {
+        [scene]: {
             [layerId]: {
                 id: layerId,
                 ...(flags?.[layerId] ?? {}),
@@ -224,6 +226,26 @@ const refreshPlaceables = (scene, layerId) => {
         }
     }
 };
+
+function handleSocketEvent({ action = null, data = {} } = {}) {
+    switch (action) {
+      case socketEvent.updateView:
+        Hooks.callAll(socketEvent.updateView, data);
+        break;
+      case socketEvent.updatePlaceableCollection:
+        Hooks.callAll(socketEvent.updatePlaceableCollection, data);
+        break;
+      case socketEvent.closeLayer:
+        Hooks.callAll(socketEvent.closeLayer, data);
+        break;
+    }
+  }
+  
+  const socketEvent = {
+    updateView: "CanvasLayersUpdateView",
+    closeLayer: "CanvasLayersCloseLayer",
+    updatePlaceableCollection: "CanvasLayersUpdatePlaceableCollection",
+  };
 
 const { HandlebarsApplicationMixin: HandlebarsApplicationMixin$5, ApplicationV2: ApplicationV2$5 } = foundry.applications.api;
 
@@ -449,6 +471,7 @@ class RemoveLayerDialog extends HandlebarsApplicationMixin$4(ApplicationV2$4) {
         this.layer = layer;
         this.choices = {
             drawings: false, 
+            tiles: false,
         };
     }
 
@@ -649,13 +672,33 @@ class LayerMenu extends HandlebarsApplicationMixin$2(ApplicationV2$2) {
         return context;
     }
 
-    static async updateData(event, element, formData) {
-        const data = foundry.utils.expandObject(formData.object);
-        const canvasLayers = this.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
-        await this.scene.setFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers, foundry.utils.mergeObject(
-            canvasLayers,
-            data,
-        ));
+    static async updateData() {
+        this.render();
+    }
+
+    _attachPartListeners(partId, htmlElement, options) {
+        super._attachPartListeners(partId, htmlElement, options);
+    
+        htmlElement.querySelectorAll('.layer-type-input').forEach(input => input.addEventListener('change', this.layerTypeUpdate.bind(this)));
+    }
+
+    async layerTypeUpdate(event) {
+        const button = event.currentTarget;
+        const newType = Number.parseInt(event.currentTarget.value);
+
+        await this.scene.setFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers, {
+            [`${button.dataset.id}`]: {
+                type: newType,
+                controlledPlayers: null,
+            }
+        });
+
+        if(newType === layerTypes.controlled.value) {
+            game.socket.emit(SOCKET_ID, {
+                action: socketEvent.closeLayer,
+                data: { scene: this.scene.id, layer: button.dataset.layer },
+            });
+        }
 
         foundry.ui.nav.render(true);
         this.render();
@@ -776,7 +819,6 @@ class LayerMenu extends HandlebarsApplicationMixin$2(ApplicationV2$2) {
 
     static async toggleActive(event, button) {
         event.preventDefault();
-        getUserSceneFlags(this.scene.id);
         await setUserSceneFlags(button.dataset.layer, (layer) => ({
             active: !layer.active,
         }));
@@ -838,6 +880,24 @@ class LayerMenu extends HandlebarsApplicationMixin$2(ApplicationV2$2) {
                 }
             }
 
+            const connectedTiles = this.scene.tiles.filter(x => {
+                const canvasLayers = x.flags[MODULE_ID][ModuleFlags.Tile.CanvasLayers];
+                return canvasLayers.includes(button.dataset.layer);
+            });
+
+            for(var tile of connectedTiles) {
+                const tileLayers = tile.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers);
+                if(choices.tiles && tileLayers.length === 1)
+                {
+                    await tile.delete();
+                }
+                else {
+                    await tile.unsetFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers);
+                    await tile.setFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers, tileLayers.filter(x => x !== button.dataset.layer));
+                    tile._object._refreshState();
+                }
+            }
+
             let position = 1;
             const newLayers = Object.values(this.scene.flags[MODULE_ID][ModuleFlags.Scene.CanvasLayers]).sort((a, b) => a.position - b.position).reduce((acc, layer) => {
                 if(layer.id !== button.dataset.layer) {
@@ -858,6 +918,10 @@ class LayerMenu extends HandlebarsApplicationMixin$2(ApplicationV2$2) {
             await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}.-=${button.dataset.layer}`]: null });
             await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}`]: newLayers });
             
+            game.socket.emit(SOCKET_ID, {
+                action: socketEvent.updatePlaceableCollection,
+                data: { sceneId: this.scene.id, types: ['drawings', 'tiles'], placeableIds: [...connectedDrawings.map(x => x.id), ...connectedTiles.map(x => x.id)]},
+            });
 
             this.render();
         });
@@ -909,9 +973,10 @@ var t="&#8203;";function e(t,e){(null==e||e>t.length)&&(e=t.length);for(var i=0,
 const { HandlebarsApplicationMixin: HandlebarsApplicationMixin$1, ApplicationV2: ApplicationV2$1 } = foundry.applications.api;
 
 class AddToLayerDialog extends HandlebarsApplicationMixin$1(ApplicationV2$1) {
-    constructor(sceneLayers, placeables) {
+    constructor(scene, sceneLayers, placeables) {
         super({});
 
+        this.scene = scene;
         this.placeables = placeables;
         this.sceneLayers = sceneLayers;
         this.layers = [];
@@ -1015,6 +1080,12 @@ class AddToLayerDialog extends HandlebarsApplicationMixin$1(ApplicationV2$1) {
             placeable._refreshState();
         }
 
+        const type = Array.from(this.placeables)[0][1].document.collectionName;
+        game.socket.emit(SOCKET_ID, {
+            action: socketEvent.updatePlaceableCollection,
+            data: { sceneId: this.scene.id, types: [type], placeableIds: Array.from(this.placeables.keys()) },
+        });
+
         this.close();
     }
 }
@@ -1038,7 +1109,7 @@ const SetLayers = () => {
         return;
     }
 
-    new AddToLayerDialog(Object.values(sceneLayers), drawings.size > 0 ? drawings : tiles).render(true);
+    new AddToLayerDialog(game.canvas.scene, Object.values(sceneLayers), drawings.size > 0 ? drawings : tiles).render(true);
 };
 
 var macros = /*#__PURE__*/Object.freeze({
@@ -1129,14 +1200,11 @@ const registerLibwrapperDrawing = () => {
             
             const canvasLayerValues = Object.values(canvasLayers);
             const matchingLayers = canvasLayerValues.filter(x => drawingUsedLayers.some(value => value === x.id));
-            if(userLayers && matchingLayers.length > 0 && Object.values(userLayers).some(userLayer => {
+            if(userLayers && matchingLayers.length > 0 && (Object.values(userLayers).some(userLayer => {
                 const matchingLayer = matchingLayers.some(x => userLayer.id === x.id);
-                if(matchingLayer?.type === layerTypes.controlled.value && !game.user.isGM){
-                    return matchingLayer.activePlayers.includes(game.user.is);
-                }
 
                 return userLayer.active && matchingLayer;
-            })) {
+            }) || (!game.user.isGM && matchingLayers.some(x => x.type === layerTypes.controlled.value && x.controlledPlayers?.includes(game.user.id))))) {
                 return wrapped(args);
             }
             
@@ -1235,12 +1303,9 @@ const registerLibwrapperTile = () => {
             const matchingLayers = canvasLayerValues.filter(x => tileUsedLayers.some(value => value === x.id));
             if(userLayers && matchingLayers.length > 0 && (Object.values(userLayers).some(userLayer => {
                 const matchingLayer = matchingLayers.some(x => userLayer.id === x.id);
-                // if(matchingLayer?.type === layerTypes.controlled.value && !game.user.isGM){
-                //     return matchingLayer.activePlayers.includes(game.user.is);
-                // }
 
                 return userLayer.active && matchingLayer;
-            }) || (!game.user.isGM && matchingLayers.some(x => x.type === layerTypes.controlled.value && x.controlledPlayers.includes(game.user.id))))) {
+            }) || (!game.user.isGM && matchingLayers.some(x => x.type === layerTypes.controlled.value && x.controlledPlayers?.includes(game.user.id))))) {
                 return wrapped(args);
             }
             
@@ -1344,18 +1409,6 @@ class PlayerSelectDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         await super.close(baseOptions);
     }
 }
-
-function handleSocketEvent({ action = null, data = {} } = {}) {
-    switch (action) {
-      case socketEvent.updateView:
-        Hooks.callAll(socketEvent.updateView, data);
-        break;
-    }
-  }
-  
-  const socketEvent = {
-    updateView: "CanvasLayersUpdateView"
-  };
 
 const handleMigration = async () => {
     if (!game.user.isGM) return;
@@ -1494,6 +1547,25 @@ Hooks.on("renderSceneNavigation", async (config, html, _, options) => {
 Hooks.on(socketEvent.updateView, async ({ scene, layer, changedPlayers }) => {
     if(changedPlayers.includes(game.user.id)) {
         refreshPlaceables(game.scenes.get(scene), layer);
+    }
+});
+
+Hooks.on(socketEvent.closeLayer, async ({ scene, layer }) => {
+    if(!game.user.isGM) {
+        await setUserSceneFlags(layer, () => ({
+            active: false,
+        }), scene);
+
+        refreshPlaceables(game.scenes.get(scene), layer);
+    }
+});
+
+Hooks.on(socketEvent.updatePlaceableCollection, async ({ sceneId, types, placeableIds }) => {
+    const scene = game.scenes.get(sceneId);
+    
+    const placeables = types.flatMap(type => type === 'drawings' ? scene.drawings.filter(x => placeableIds.includes(x.id)) : scene.tiles.filter(x => placeableIds.includes(x.id)));
+    for(var placeable of placeables) {
+        placeable._object._refreshState();
     }
 });
 //# sourceMappingURL=CanvasLayers.js.map

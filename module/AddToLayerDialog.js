@@ -1,12 +1,14 @@
 import Tagify from "@yaireo/tagify";
-import { MODULE_ID, ModuleFlags } from "../data/Constants";
+import { MODULE_ID, ModuleFlags, SOCKET_ID } from "../data/Constants";
+import { socketEvent } from "../scripts/sockets";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
 export default class AddToLayerDialog extends HandlebarsApplicationMixin(ApplicationV2) {
-    constructor(sceneLayers, placeables) {
+    constructor(scene, sceneLayers, placeables) {
         super({});
 
+        this.scene = scene;
         this.placeables = placeables;
         this.sceneLayers = sceneLayers;
         this.layers = [];
@@ -109,6 +111,12 @@ export default class AddToLayerDialog extends HandlebarsApplicationMixin(Applica
 
             placeable._refreshState();
         }
+
+        const type = Array.from(this.placeables)[0][1].document.collectionName;
+        game.socket.emit(SOCKET_ID, {
+            action: socketEvent.updatePlaceableCollection,
+            data: { sceneId: this.scene.id, types: [type], placeableIds: Array.from(this.placeables.keys()) },
+        });
 
         this.close();
     }
