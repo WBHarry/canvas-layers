@@ -1,0 +1,106 @@
+.theme-dark {
+    .canvas-layers.guide-dialog {
+        .guide-dialog-container {
+            .guide-dialog-sidebar {
+                .guide-dialog-section {
+                    color: var(--color-form-label);
+
+                    &.active {
+                        color: var(--color-form-label-hover);
+                    }
+                }
+            }
+        }
+    }
+}
+
+.canvas-layers.guide-dialog {
+    .window-content {
+        padding: 0;
+    }
+
+    .guide-dialog-container {
+        display: flex;
+
+        .guide-dialog-sidebar {
+            width: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: normal;
+            gap: 0;
+            border: 0 2px 0 0;
+            border-style: solid;
+            border-color: var(--color-border);
+            background: var(--color-form-label);
+
+            .guide-dialog-section {
+                height: 48px;
+                width: 100%;
+                background: var(--color-form-hint);
+                color: var(--color-select-option-bg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+
+                &.active {
+                    text-shadow: 0 0 10px var(--color-fieldset-border);
+                }
+
+                &:not(:last-child) {
+                    border-bottom-width: 2px;
+                    border-bottom-style: solid;
+                    border-bottom-color: var(--color-border);
+                }
+            }
+        }
+
+        .guide-dialog-main {
+            padding: 16px;
+            flex: 1;
+            height: 100%;
+
+            .guide-dialog-overview-title {
+                text-align: center;
+
+                &.spaced {
+                    margin-bottom: 8px;
+                }
+            }
+
+            .guide-dialog-overview-grouping {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+
+                .guide-dialog-overview-group-title {
+                    text-align: center;
+                    font-weight: bold;
+                }
+            }
+
+            .guide-dialog-main-tabs {
+                display: flex;
+                width: 100;
+
+                .guide-dialog-main-tab {
+                    height: 24px;
+                    font-size: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    &.active {
+                        border-bottom: 2px solid;
+                        position: relative;
+                        top: 1px;
+                    }
+                }
+            }
+
+            .guide-dialog-guide-text {
+                margin: 8px 0;
+            }
+        }
+    }
+}

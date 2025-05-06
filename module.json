@@ -2,7 +2,7 @@
   "id": "canvas-layers",
   "title": "Canvas Layers",
   "description": "Adds toggle:able layers of text and drawings to any map.",
-  "version": "0.9",
+  "version": "1.0.0",
   "authors": [
     {
       "name": "HarryBoy",
@@ -11,7 +11,7 @@
   ],
   "compatibility": {
     "minimum": "13",
-    "verified": "13.341",
+    "verified": "13.342",
     "maximum": "13"
   },
   "packs": [

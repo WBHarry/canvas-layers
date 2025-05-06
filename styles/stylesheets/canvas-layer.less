@@ -36,7 +36,8 @@
 
             .canvas-layer-container {
                 display: flex;
-                align-items: center;
+                flex-direction: column;
+                gap: 6px;
                 padding: 8px;
                 width: auto;
                 position: relative;
@@ -44,6 +45,32 @@
 
                 &.active {
                     opacity: 1;
+                }
+                
+                .canvas-layer-container-name {
+                    &.controlled{
+                        position: relative;
+                        top: 6px;
+                        font-size: 14px;
+
+                        &.empty {
+                            top: 7.5px;
+                        } 
+                    }
+                }
+
+                .canvas-layer-controlled-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-size: 7px;
+
+                    .canvas-layer-controlled-marker {
+                        border-radius: 50%;
+                        height: 6px;
+                        width: 6px;
+                        content: "";
+                    }
                 }
             }
 

@@ -1,10 +1,11 @@
-import { MODULE_ID, ModuleFlags } from "../canvas-layers";
+import { layerTypes, MODULE_ID, ModuleFlags } from "../data/Constants";
 import { libWrapper } from "../libwrapperShim";
 import Tagify from "@yaireo/tagify";
+import { getUserSceneFlags } from "./helpers";
 
 Hooks.on('createDrawing', async (document) => {
     if(!game.user.isGM) return;
-    const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers) ?? {};
+    const userLayers = getUserSceneFlags();
     const activeCanvasLayers = Object.values(userLayers).filter(x => x.active);
     if(activeCanvasLayers.length === 0) return;
 
@@ -81,11 +82,18 @@ export const registerLibwrapperDrawing = () => {
             const drawingUsedLayers = this.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
             if(!drawingUsedLayers || drawingUsedLayers.length === 0) return wrapped(args);
 
-            const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
+            const userLayers = getUserSceneFlags();
             
             const canvasLayerValues = Object.values(canvasLayers);
-            const matchingLayers = drawingUsedLayers.filter(x => canvasLayerValues.some(value => value.id === x));
-            if(userLayers && matchingLayers.length > 0 && Object.values(userLayers).some(userLayer => userLayer.active && matchingLayers.some(x => userLayer.id === x))) {
+            const matchingLayers = canvasLayerValues.filter(x => drawingUsedLayers.some(value => value === x.id));
+            if(userLayers && matchingLayers.length > 0 && Object.values(userLayers).some(userLayer => {
+                const matchingLayer = matchingLayers.some(x => userLayer.id === x.id);
+                if(matchingLayer?.type === layerTypes.controlled.value && !game.user.isGM){
+                    return matchingLayer.activePlayers.includes(game.user.is);
+                }
+
+                return userLayer.active && matchingLayer;
+            })) {
                 return wrapped(args);
             }
             

@@ -1,5 +1,6 @@
 @import 'stylesheets/canvas-layer.less';
 @import 'stylesheets/layer-menu.less';
+@import 'stylesheets/guide-dialog.less';
 @import (inline) "../node_modules/@yaireo/tagify/dist/tagify.css";
 
 .theme-dark {
@@ -106,6 +107,35 @@
 
             .add-to-layer-tagify {
                 width: 100%;
+            }
+
+            footer {
+                display: flex;
+                gap: 8px;
+
+                button {
+                    flex: 1;
+                }
+            }
+        }
+    }
+
+    &.player-select-dialog {
+        .player-select-dialog-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .player-select-dialog-inner-container {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+
+                .player-container{
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
             }
 
             footer {

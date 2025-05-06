@@ -1,8 +1,17 @@
 .canvas-layers.layer-menu {
     .layer-menu-container {
+        position: relative;
         display: flex;
         flex-direction: column;
         gap: 8px;
+
+        .layer-information {
+            position: absolute;
+            top: -11px;
+            right: 2px;
+            font-size: 24px;
+            cursor: pointer;
+        }
 
         .layers-container {   
             border-width: 4px;

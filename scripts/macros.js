@@ -1,4 +1,5 @@
-import { MODULE_ID, ModuleFlags } from "../canvas-layers";
+
+import { MODULE_ID, ModuleFlags } from "../data/Constants.js";
 import AddToLayerDialog from "../module/AddToLayerDialog.js";
 
 export const SetLayers = () => {

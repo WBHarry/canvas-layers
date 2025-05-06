@@ -1,0 +1,102 @@
+<div class="guide-dialog-container">
+    <nav class="tabs guide-dialog-sidebar">
+        {{#each this.sectionTabs as |tab|}}
+            <a 
+                class="{{tab.cssClass}} guide-dialog-section" 
+                data-action="tab" 
+                data-group="{{tab.group}}" 
+                data-tab="{{tab.id}}"
+            >
+                <label>{{tab.label}}</label>
+            </a>
+        {{/each}}
+    </nav>
+    <div class="guide-dialog-main">
+        <div class="tab {{this.sectionTabs.overview.cssClass}}" data-group="{{this.sectionTabs.overview.group}}" data-tab="{{this.sectionTabs.overview.id}}">
+            <div class="guide-dialog-overview-title spaced">{{{localize "CanvasLayers.GuideDialog.Overview.Intro"}}}</div>
+            <div class="guide-dialog-overview-title">{{localize "CanvasLayers.GuideDialog.Overview.Description"}}</div>
+            <div class="guide-dialog-overview-grouping">
+                <div class="guide-dialog-overview-group-title">{{localize "CanvasLayers.GuideDialog.Overview.OpenTitle"}}</div>
+                <div>{{localize "CanvasLayers.GuideDialog.Overview.OpenDescription"}}</div>
+            </div>
+            <div class="guide-dialog-overview-grouping">
+                <div class="guide-dialog-overview-group-title">{{localize "CanvasLayers.GuideDialog.Overview.ControlledTitle"}}</div>
+                <div>{{localize "CanvasLayers.GuideDialog.Overview.ControlledDescription"}}</div>
+            </div>
+        </div>
+        <div class="tab {{this.sectionTabs.open.cssClass}}" data-group="{{this.sectionTabs.open.group}}" data-tab="{{this.sectionTabs.open.id}}">
+            <nav class="tabs guide-dialog-main-tabs">
+                {{#each this.openTabs as |tab|}}
+                    <a 
+                        class="{{tab.cssClass}} guide-dialog-main-tab" 
+                        data-action="tab" 
+                        data-group="{{tab.group}}" 
+                        data-tab="{{tab.id}}"
+                    >
+                        <label>{{tab.label}}</label>
+                    </a>
+                {{/each}}
+            </nav>
+            <div class="tab {{this.openTabs.example1.cssClass}}" data-group="{{this.openTabs.example1.group}}" data-tab="{{this.openTabs.example1.id}}">
+                <div class="guide-dialog-guide-text">{{localize "CanvasLayers.GuideDialog.Open.Example1.Description"}}</div>
+                <img src="modules/canvas-layers/assets/OpenExample1.webp" />
+            </div>
+            <div class="tab {{this.openTabs.example2.cssClass}}" data-group="{{this.openTabs.example2.group}}" data-tab="{{this.openTabs.example2.id}}">
+                <div class="guide-dialog-guide-text">{{localize "CanvasLayers.GuideDialog.Open.Example2.Description"}}</div>
+                <img src="modules/canvas-layers/assets/OpenExample2.webp" />
+            </div>
+            <div class="tab {{this.openTabs.example3.cssClass}}" data-group="{{this.openTabs.example3.group}}" data-tab="{{this.openTabs.example3.id}}">
+                <div class="guide-dialog-guide-text">{{localize "CanvasLayers.GuideDialog.Open.Example3.Description"}}</div>
+                <img src="modules/canvas-layers/assets/OpenExample3.webp" />
+            </div>
+        </div>
+        <div class="tab {{this.sectionTabs.controlled.cssClass}}" data-group="{{this.sectionTabs.controlled.group}}" data-tab="{{this.sectionTabs.controlled.id}}">
+            <nav class="tabs guide-dialog-main-tabs">
+                {{#each this.controlledTabs as |tab|}}
+                    <a 
+                        class="{{tab.cssClass}} guide-dialog-main-tab" 
+                        data-action="tab" 
+                        data-group="{{tab.group}}" 
+                        data-tab="{{tab.id}}"
+                    >
+                        <label>{{tab.label}}</label>
+                    </a>
+                {{/each}}
+            </nav>
+            <div class="tab {{this.controlledTabs.example1.cssClass}}" data-group="{{this.controlledTabs.example1.group}}" data-tab="{{this.controlledTabs.example1.id}}">
+                <div class="guide-dialog-guide-text">{{localize "CanvasLayers.GuideDialog.Controlled.Example1.Description"}}</div>
+                <img src="modules/canvas-layers/assets/GMControlledExample1.webp" />
+            </div>
+            <div class="tab {{this.controlledTabs.example2.cssClass}}" data-group="{{this.controlledTabs.example2.group}}" data-tab="{{this.controlledTabs.example2.id}}">
+                <div class="guide-dialog-guide-text">{{localize "CanvasLayers.GuideDialog.Controlled.Example2.Description"}}</div>
+                <img src="modules/canvas-layers/assets/GMControlledExample2.webp" />
+            </div>
+            <div class="tab {{this.controlledTabs.example3.cssClass}}" data-group="{{this.controlledTabs.example3.group}}" data-tab="{{this.controlledTabs.example3.id}}">
+                <div class="guide-dialog-guide-text">{{localize "CanvasLayers.GuideDialog.Controlled.Example3.Description"}}</div>
+                <img src="modules/canvas-layers/assets/PlayerControlledExample1.webp" />
+            </div>
+            <div class="tab {{this.controlledTabs.example4.cssClass}}" data-group="{{this.controlledTabs.example4.group}}" data-tab="{{this.controlledTabs.example4.id}}">
+                <div class="guide-dialog-guide-text">{{localize "CanvasLayers.GuideDialog.Controlled.Example4.Description"}}</div>
+                <img src="modules/canvas-layers/assets/PlayerControlledExample2.webp" />
+            </div>
+        </div>
+        <div class="tab {{this.sectionTabs.macros.cssClass}}" data-group="{{this.sectionTabs.macros.group}}" data-tab="{{this.sectionTabs.macros.id}}">
+            <nav class="tabs guide-dialog-main-tabs">
+                {{#each this.macrosTabs as |tab|}}
+                    <a 
+                        class="{{tab.cssClass}} guide-dialog-main-tab" 
+                        data-action="tab" 
+                        data-group="{{tab.group}}" 
+                        data-tab="{{tab.id}}"
+                    >
+                        <label>{{tab.label}}</label>
+                    </a>
+                {{/each}}
+            </nav>
+            <div class="tab {{this.macrosTabs.addToLayers.cssClass}}" data-group="{{this.macrosTabs.addToLayers.group}}" data-tab="{{this.macrosTabs.addToLayers.id}}">
+                <div class="guide-dialog-guide-text">{{localize "CanvasLayers.GuideDialog.Macros.AddToLayers.Description"}}</div>
+                <img src="modules/canvas-layers/assets/MacroExample1.webp" />
+            </div>
+        </div>
+    </div>
+</div>

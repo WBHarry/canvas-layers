@@ -1,0 +1,18 @@
+<div class="player-select-dialog-container">
+
+    <div>{{localize "CanvasLayers.PlayerSelectDialog.Info"}}</div>
+
+    <div class="player-select-dialog-inner-container">
+        {{#each this.players}}
+            <div class="player-container">
+                <input type="checkbox" name="{{concat "players." this.id ".active"}}" {{checked this.active}} />
+                <div>{{this.name}}</div>
+            </div>
+        {{/each}}
+    </div>
+
+    <footer>
+        <button data-action="save">{{localize "CanvasLayers.General.Confirm"}}</button>
+        <button data-action="close">{{localize "CanvasLayers.General.Cancel"}}</button>
+    </footer> 
+</div>

@@ -1,11 +1,11 @@
 import Tagify from "@yaireo/tagify";
-import { MODULE_ID, ModuleFlags } from "../canvas-layers";
+import { layerTypes, MODULE_ID, ModuleFlags } from "../data/Constants";
 import { libWrapper } from "../libwrapperShim";
-import { safeJSONParse } from "./helpers";
+import { getUserSceneFlags, safeJSONParse } from "./helpers";
 
 Hooks.on('createTile', async (document) => {
     if(!game.user.isGM) return;
-    const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers) ?? {};
+    const userLayers = getUserSceneFlags();
     const activeCanvasLayers = Object.values(userLayers).filter(x => x.active);
     if(activeCanvasLayers.length === 0) return;
 
@@ -27,7 +27,7 @@ Hooks.on('renderTileConfig', async (config, html, _, options) => {
     `);
 
     const tileLayers = config.document.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers) ?? [];
-    const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers) ?? {};
+    const userLayers = getUserSceneFlags();
     const userLayerValues = Object.values(userLayers);
     const selectedLayers = options.preview ? Object.values(canvasLayers).filter(x => userLayerValues.some(y => x.id === y.id && y.active)).map(x => x.name) : Object.values(canvasLayers).filter(x => tileLayers.includes(x.id)).map(x => x.name);
 
@@ -87,11 +87,18 @@ export const registerLibwrapperTile = () => {
             const tileUsedLayers = this.document.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers);
             if(!tileUsedLayers || typeof tileUsedLayers === 'string' || tileUsedLayers.length === 0) return wrapped(args);
 
-            const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
+            const userLayers = getUserSceneFlags();
             
             const canvasLayerValues = Object.values(canvasLayers);
-            const matchingLayers = tileUsedLayers.filter(x => canvasLayerValues.some(value => value.id === x));
-            if(userLayers && matchingLayers.length > 0 && Object.values(userLayers).some(userLayer => userLayer.active && matchingLayers.some(x => userLayer.id === x))) {
+            const matchingLayers = canvasLayerValues.filter(x => tileUsedLayers.some(value => value === x.id));
+            if(userLayers && matchingLayers.length > 0 && (Object.values(userLayers).some(userLayer => {
+                const matchingLayer = matchingLayers.some(x => userLayer.id === x.id);
+                // if(matchingLayer?.type === layerTypes.controlled.value && !game.user.isGM){
+                //     return matchingLayer.activePlayers.includes(game.user.is);
+                // }
+
+                return userLayer.active && matchingLayer;
+            }) || (!game.user.isGM && matchingLayers.some(x => x.type === layerTypes.controlled.value && x.controlledPlayers.includes(game.user.id))))) {
                 return wrapped(args);
             }
             

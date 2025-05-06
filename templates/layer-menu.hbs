@@ -1,4 +1,5 @@
 <div class="layer-menu-container">
+    <i class="fa-solid fa-circle-info layer-information" data-action="showGuide"></i>
     <fieldset class="layers-container">
         <legend>
             {{localize "CanvasLayers.LayerMenu.LayersSection.Title"}}
@@ -14,6 +15,9 @@
                         <div class="layer-title">{{this.name}}</div>
                     </div>
                     <div class="layer-toolbar">
+                        <select name="{{concat this.id ".type"}}" data-dtype="Number">
+                            {{selectOptions ../layerTypes selected=this.type valueAttr="value" labelAttr="name" }}
+                        </select>
                         <button data-action="toggleActive" data-layer="{{this.id}}" title="{{localize "CanvasLayers.LayerMenu.LayersSection.ToggleActive"}}" class="{{#if this.active}}active{{/if}}"><i class="fa-solid fa-bolt"></i></button>
                         <button data-action="editName" data-layer="{{this.id}}" title="{{localize "CanvasLayers.LayerMenu.LayersSection.EditName"}}"><i class="fa-solid fa-signature"></i></button>
                         <button data-action="toggleFavorite" data-layer="{{this.id}}" title="{{localize "CanvasLayers.LayerMenu.LayersSection.Favorite"}}" class="{{#if this.favorite}}active{{/if}}"><i class="fa-solid fa-star"></i></button>

@@ -1,5 +1,7 @@
-import { MODULE_ID, ModuleFlags } from "../canvas-layers.js";
+import { layerTypes, MODULE_ID, ModuleFlags } from "../data/Constants.js";
 import { ExpandedDragDrop } from "../scripts/expandedDragDrop.js";
+import { getUserSceneFlags, setUserSceneFlags } from "../scripts/helpers.js";
+import GuideDialog from "./GuideDialog.js";
 import RemoveLayerDialog from "./RemoveLayerDialog.js";
 import StringDialog from "./StringDialog.js";
 
@@ -23,6 +25,7 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         classes: ["canvas-layers", "layer-menu"],
         position: { width: 600, height: "auto" },
         actions: {
+            showGuide: this.showGuide,
             addNewLayer: this.addNewLayer,
             toggleActive: this.toggleActive,
             editName: this.editName,
@@ -72,8 +75,9 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
 
     async _prepareContext(_options) {
         const context = await super._prepareContext(_options);
+        context.layerTypes = Object.values(layerTypes).map(x => ({ ...x, name: game.i18n.localize(x.name) }));
         context.layers = this.scene.flags?.[MODULE_ID]?.[ModuleFlags.Scene.CanvasLayers] ? Object.values(this.scene.flags[MODULE_ID][ModuleFlags.Scene.CanvasLayers]).sort((a, b) => a.position - b.position).map(sceneLayer => {
-            const userFlag = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
+            const userFlag = getUserSceneFlags(this.scene.id);
             return {
                 ...sceneLayer,
                 active: userFlag?.[sceneLayer.id]?.active ?? false,
@@ -86,6 +90,13 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
 
     static async updateData(event, element, formData) {
         const data = foundry.utils.expandObject(formData.object);
+        const canvasLayers = this.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
+        await this.scene.setFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers, foundry.utils.mergeObject(
+            canvasLayers,
+            data,
+        ));
+
+        foundry.ui.nav.render(true);
         this.render();
     }
 
@@ -180,6 +191,10 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         this.render();
     }
 
+    static showGuide(){
+        new GuideDialog().render(true);
+    }
+
     static async addNewLayer() {
         new Promise((resolve, reject) => {
             new StringDialog(resolve, reject, '', game.i18n.format('CanvasLayers.UI.AddCanvasLayerTitle', { scene: game.canvas.scene.name })).render(true)
@@ -198,20 +213,18 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         });
     }
 
-    static async toggleActive(_, button) {
-        const userLayers = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers) ?? {};
-        await game.user.setFlag(MODULE_ID, ModuleFlags.User.CanvasLayers, {
-            ...userLayers,
-            [button.dataset.layer]: {
-                ...userLayers[button.dataset.layer],
-                active: !userLayers[button.dataset.layer].active,
-            }
-        });
+    static async toggleActive(event, button) {
+        event.preventDefault();
+        const userLayers = getUserSceneFlags(this.scene.id);
+        await setUserSceneFlags(button.dataset.layer, (layer) => ({
+            active: !layer.active,
+        }));
         foundry.ui.nav.render(true);
         this.render();
     }
 
-    static async editName(_, button) {
+    static async editName(event, button) {
+        event.preventDefault();
         const canvasLayers = this.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
         new Promise((resolve, reject) => {
             new StringDialog(resolve, reject, canvasLayers[button.dataset.layer].name, game.i18n.localize('CanvasLayers.LayerMenu.LayersSection.EditName')).render(true);
@@ -227,7 +240,8 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         });
     }
 
-    static async toggleFavorite(_, button) {
+    static async toggleFavorite(event, button) {
+        event.preventDefault();
         const canvasLayers = this.scene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
         await this.scene.setFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers, {
             ...canvasLayers,
@@ -239,7 +253,8 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
         this.render();
     }
 
-    static async removeLayer(_, button) {
+    static async removeLayer(event, button) {
+        event.preventDefault();
         const layer = this.scene.flags[MODULE_ID][ModuleFlags.Scene.CanvasLayers][button.dataset.layer];
         new Promise((resolve, reject) => {
             new RemoveLayerDialog(resolve, reject, this.scene.name, layer.name).render(true);
@@ -276,7 +291,7 @@ export default class LayerMenu extends HandlebarsApplicationMixin(ApplicationV2)
             }, {});
 
             for(var user of game.users) {
-                await user.update({ [`flags.${MODULE_ID}.${ModuleFlags.User.CanvasLayers}.-=${button.dataset.layer}`]: null });
+                await user.update({ [`flags.${MODULE_ID}.${ModuleFlags.User.CanvasLayers}.${this.scene.id}.-=${button.dataset.layer}`]: null });
             }
 
             await this.scene.update({ [`flags.${MODULE_ID}.${ModuleFlags.Scene.CanvasLayers}.-=${button.dataset.layer}`]: null });

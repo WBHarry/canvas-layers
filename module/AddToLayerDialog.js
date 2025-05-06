@@ -1,5 +1,5 @@
 import Tagify from "@yaireo/tagify";
-import { MODULE_ID, ModuleFlags } from "../canvas-layers";
+import { MODULE_ID, ModuleFlags } from "../data/Constants";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 

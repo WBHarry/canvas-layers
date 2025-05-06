@@ -4,25 +4,15 @@ import { setup } from "./setup.js";
 import * as macros from "./scripts/macros.js";
 import { registerLibwrapperDrawing } from "./scripts/drawing.js";
 import { registerLibwrapperTile } from "./scripts/tile.js";
-
-export const MODULE_ID = 'canvas-layers';
-export const ModuleFlags = {
-    Scene: {
-        CanvasLayers: 'canvas-layers',
-    },
-    Drawing: {
-        CanvasLayers: 'canvas-layers',
-    },
-    Tile: {
-        CanvasLayers: 'canvas-layers',
-    },
-    User: {
-        CanvasLayers: 'canvas-layers',
-    },
-};
+import { layerTypes, MODULE_ID, ModuleFlags, SOCKET_ID } from "./data/Constants.js";
+import PlayerSelectDialog from "./module/PlayerSelectDialog.js";
+import { getUserSceneFlags, refreshPlaceables, setUserSceneFlags } from "./scripts/helpers.js";
+import { handleSocketEvent, socketEvent } from "./scripts/sockets.js";
+import { handleMigration } from "./scripts/migration.js";
 
 Hooks.once("init", () => {
     setup();
+    game.socket.on(SOCKET_ID, handleSocketEvent);
     game.modules.get(MODULE_ID).macros = macros;
     foundry.applications.handlebars.loadTemplates([
         `modules/${MODULE_ID}/templates/canvas-layer-header.hbs`,
@@ -35,14 +25,25 @@ Hooks.once("init", () => {
     }
 });
 
+Hooks.once("ready", async () => {
+    handleMigration();
+});
+
 Hooks.on("renderSceneNavigation", async (config, html, _, options) => {  
     if (options.parts && !options.parts.includes("scenes")) return;
 
     const layersFlag = game.canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
-    const userFlag = game.user.getFlag(MODULE_ID, ModuleFlags.User.CanvasLayers);
-    const layersData = layersFlag ? Object.values(layersFlag).map(x => ({
+    const userFlag = getUserSceneFlags();
+    const layersData = layersFlag ? Object.values(layersFlag)
+    .filter(x => {
+        if(!game.user.isGM && x.type === layerTypes.controlled.value) return false;
+
+        return true;
+    })
+    .map(x => ({
         ...x,
         active: userFlag?.[x.id] ? userFlag[x.id].active : false,
+        playerMarkers: x.controlledPlayers ? game.users.filter(user => x.controlledPlayers.includes(user.id)).map(x => ({ name: x.name, color: x.color.css })) : [],
     })).sort((a, b) => {
         if(a.favorite && !b.favorite) return -1;
         else if(!a.favorite && b.favorite) return 1;
@@ -81,36 +82,44 @@ Hooks.on("renderSceneNavigation", async (config, html, _, options) => {
 
     canvasLayerContainer.querySelectorAll('.canvas-layer-container').forEach(event => {
         event.addEventListener('click', async (event) => {
-            const canvasLayers = game.user.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers) ?? {};
             const layerId = event.currentTarget.dataset.layer;
-            await game.user.setFlag(MODULE_ID, ModuleFlags.User.CanvasLayers, {
-                ...canvasLayers,
-                [layerId]: {
-                    id: layerId,
-                    active: canvasLayers[layerId] ? !canvasLayers[layerId].active : true,
-                }
-            });
+            await setUserSceneFlags(layerId, (layer) => ({
+                active: layer ? !layer.active : true,
+            }));
 
-            for(var drawing of game.canvas.drawings.children.flatMap(x => x.children)) {
-                if(!drawing) continue;
-
-                const drawingFlags = drawing.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
-                if(drawingFlags?.includes(layerId)){
-                    drawing._refreshState();
-                }
-            }
-
-            for(var tile of game.canvas.tiles.children.flatMap(x => x.children)) {
-                if(!tile) continue;
-
-                const tileFlags = tile.document.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers);
-                if(tileFlags?.includes(layerId)){
-                    tile._refreshState();
-                }
-            }
+            refreshPlaceables(game.canvas.scene, layerId);
 
             foundry.applications.instances.get('canvas-layers-layer-menu')?.render(true);
             foundry.ui.nav.render(true);
+        });
+
+        event.addEventListener('contextmenu', async (event) => {
+            const currentScene = game.canvas.scene;
+            const canvasLayers = currentScene.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers) ?? {};
+            const layerId = event.currentTarget.dataset.layer;
+            const layer = canvasLayers[layerId];
+            const controlledPlayers = layer.controlledPlayers;
+            if(!layer || layer.type !== layerTypes.controlled.value) return;
+
+            new Promise((resolve, reject) => {
+                new PlayerSelectDialog(resolve, reject, currentScene, controlledPlayers ?? []).render(true);
+            }).then(async ({selectedPlayers, changedPlayers}) => {
+                await currentScene.setFlag(MODULE_ID, ModuleFlags.User.CanvasLayers, {
+                    ...canvasLayers,
+                    [layerId]: {
+                        ...canvasLayers[layerId],
+                        controlledPlayers: selectedPlayers,
+                    }
+                });
+
+                game.socket.emit(SOCKET_ID, {
+                    action: socketEvent.updateView,
+                    data: { scene: currentScene.id, layer: layerId, changedPlayers: changedPlayers },
+                });
+
+                foundry.applications.instances.get('canvas-layers-layer-menu')?.render(true);
+                foundry.ui.nav.render(true);
+            });
         });
     });
     if(game.user.isGM){
@@ -118,5 +127,11 @@ Hooks.on("renderSceneNavigation", async (config, html, _, options) => {
            const layerMenu = new LayerMenu(game.canvas.scene);
            layerMenu.render(true);
         });
+    }
+});
+
+Hooks.on(socketEvent.updateView, async ({ scene, layer, changedPlayers }) => {
+    if(changedPlayers.includes(game.user.id)) {
+        refreshPlaceables(game.scenes.get(scene), layer);
     }
 });

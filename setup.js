@@ -1,17 +1,14 @@
-import { CanvasLayerData } from "./data/CanvasLayer.js";
-import { MODULE_ID } from "./canvas-layers.js";
+import { MODULE_ID } from "./data/Constants";
 
-export const ModuleSettings = {
-    canvasLayerData: 'canvas-layer-data',
-};
+export const currentVersion = '1.0.0';
 
 export const setup = () => {
-    game.settings.register(MODULE_ID, ModuleSettings.canvasLayerData, {
-        name: '',
-        hint: '',
+    game.settings.register(MODULE_ID, "version", {
+        name: "",
+        hint: "",
         scope: "world",
         config: false,
-        type: CanvasLayerData,
-        default: {},
-    });
+        type: String,
+        default: "",
+      });
 };
