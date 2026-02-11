@@ -1470,28 +1470,36 @@ Hooks.on("renderSceneNavigation", async (config, html, _, options) => {
     /* 
         - Setup html nav as FlexRow
         - Move the originalChildren into underlying containers to have a flex order 
-    */
-    const originalChildrenIds =[];
-    html.parentElement.style = "flex: 1;";
-    html.childNodes.forEach(x => originalChildrenIds.push(x.id));
-    html.classList = ['flexrow'];
-    html.style = "align-items: start;";
-    html.insertAdjacentHTML('afterbegin', '<div id="canvasLayerScenes" style="flex: none; display: flex; flex-direction: column; width: 200px; overflow: visible; max-height: 100%; gap: 0.5rem; position: relative;"></div>');
+    */ 
+    const gameSystemsWithSelectors = ['daggerheart'];
+    const isSelectorGameSystem = gameSystemsWithSelectors.includes(game.system.id);
+    let containerSelector = game.system.id === 'daggerheart' ? '.scene-wrapper' : null;
+    if (!isSelectorGameSystem) {
+        const originalChildrenIds =[];
+        html.parentElement.style = "flex: 1;";
+        html.childNodes.forEach(x => originalChildrenIds.push(x.id));
+        html.classList = ['flexrow'];
+        html.style = "align-items: start;";
+        html.insertAdjacentHTML('afterbegin', '<div id="canvasLayerScenes" style="flex: none; display: flex; flex-direction: column; width: 200px; overflow: visible; max-height: 100%; gap: 0.5rem; position: relative;"></div>');
+        containerSelector = '#canvasLayerScenes';
 
-    const canvasLayersSceneContainer = html.querySelector('#canvasLayerScenes');
-    for(var childIds of originalChildrenIds){
-        const childNode = html.querySelector(`#${childIds}`);        if(childIds === 'scene-navigation-expand') {
-            childNode.style = "position: initial;";
-            html.append(childNode);
+        const canvasLayersSceneContainer = html.querySelector(containerSelector);
+        for(var childIds of originalChildrenIds){
+            const childNode = html.querySelector(`#${childIds}`);            if(childIds === 'scene-navigation-expand') {
+                childNode.style = "position: initial;";
+                html.append(childNode);
+            }
+            else {
+                canvasLayersSceneContainer.append(childNode);
+            }
         }
-        else {
-            canvasLayersSceneContainer.append(childNode);
-        }
-    }
+    } 
 
-    /* Insert custom HTML template last in the new FlexRow container. */
+    const insertElement = isSelectorGameSystem ? html.querySelector(containerSelector) : html;
     const canvasLayerTemplate = Handlebars.partials[`modules/${MODULE_ID}/templates/canvas-layer-header.hbs`]({ layerData: layersData, isGM: game.user.isGM }, {allowProtoMethodsByDefault: true, allowProtoPropertiesByDefault: true});
-    html.insertAdjacentHTML('beforeend', canvasLayerTemplate);
+    insertElement.insertAdjacentHTML('beforeend', canvasLayerTemplate);
+    
+    /* Insert custom HTML template last in the new FlexRow container. */
     const canvasLayerContainer = html.querySelector('.canvas-layers-container');
 
     canvasLayerContainer.querySelectorAll('.canvas-layer-container').forEach(event => {
