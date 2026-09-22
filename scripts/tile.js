@@ -51,6 +51,8 @@ Hooks.on('renderTileConfig', async (config, html, _, options) => {
                 highlightFirst: false,
             },
         });
+
+        input.addEventListener('change', event => event.stopPropagation());
     }  
 });
 
@@ -70,7 +72,7 @@ Hooks.on('refreshTile', (tile, test) => {
             };
         }
 
-        tile._refreshState();
+        tile._refreshVisibility();
     }
 });
 

@@ -48,7 +48,7 @@ export const refreshPlaceables = (scene, layerId) => {
 
         const tileFlags = tile.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers) ?? [];
         if(tileFlags?.includes(layerId)){
-            tile._object._refreshState();
+            tile._object._refreshVisibility();
         }
     }
 };

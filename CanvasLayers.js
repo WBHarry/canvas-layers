@@ -222,7 +222,7 @@ const refreshPlaceables = (scene, layerId) => {
 
         const tileFlags = tile.getFlag(MODULE_ID, ModuleFlags.Tile.CanvasLayers) ?? [];
         if(tileFlags?.includes(layerId)){
-            tile._object._refreshState();
+            tile._object._refreshVisibility();
         }
     }
 };
@@ -1266,6 +1266,8 @@ Hooks.on('renderTileConfig', async (config, html, _, options) => {
                 highlightFirst: false,
             },
         });
+
+        input.addEventListener('change', event => event.stopPropagation());
     }  
 });
 
@@ -1285,7 +1287,7 @@ Hooks.on('refreshTile', (tile, test) => {
             };
         }
 
-        tile._refreshState();
+        tile._refreshVisibility();
     }
 });
 
