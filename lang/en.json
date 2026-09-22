@@ -1,4 +1,7 @@
 {
+    "canvas-layers": {
+        "menuVertical": "Display Vertical Menu"
+    },
     "CanvasLayers": {
         "General": {
             "Layer": "Layer",

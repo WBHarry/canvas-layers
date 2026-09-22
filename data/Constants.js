@@ -13,7 +13,7 @@ export const ModuleFlags = {
     },
     User: {
         CanvasLayers: 'canvas-layers',
-    },
+    }
 };
 
 export const layerTypes = {
