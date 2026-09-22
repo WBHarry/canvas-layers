@@ -213,7 +213,7 @@ const refreshPlaceables = (scene, layerId) => {
 
         const drawingFlags = drawing.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers) ?? [];
         if(drawingFlags?.includes(layerId)){
-            drawing._object._refreshState();
+            drawing._object._refreshVisibility();
         }
     }
 
@@ -1143,7 +1143,7 @@ Hooks.on('renderDrawingConfig', async (config, html, _, options) => {
     const drawingLayers = config.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers) ?? [];
     const selectedLayers = Object.values(canvasLayers).filter(x => drawingLayers.includes(x.id)).map(x => x.name);
 
-    const canvasEntityLayersTemplate = Handlebars.partials[`modules/${MODULE_ID}/templates/canvas-entity-layers.hbs`]({ active: layersActive, updatePath: `flags.${MODULE_ID}.${ModuleFlags.Drawing.CanvasLayers}`, selectedLayers: selectedLayers }, {allowProtoMethodsByDefault: true, allowProtoPropertiesByDefault: true});
+    const canvasEntityLayersTemplate = Handlebars.partials[`modules/${MODULE_ID}/templates/canvas-entity-layers.hbs`]({ active: layersActive, updatePath: `flags.${MODULE_ID}.${ModuleFlags.Drawing.CanvasLayers}`, selectedLayers: selectedLayers });
     html.querySelector('.window-content .form-footer').insertAdjacentHTML('beforebegin', canvasEntityLayersTemplate);
     const canvasEntityLayersTab = html.querySelector('.window-content div[data-tab="layers"]');
 
@@ -1163,6 +1163,8 @@ Hooks.on('renderDrawingConfig', async (config, html, _, options) => {
                 highlightFirst: false,
             },
         });
+
+        input.addEventListener('change', event => event.stopPropagation());
     }  
 });
 
@@ -1181,7 +1183,7 @@ Hooks.on('preUpdateDrawing', (document, update) => {
 
         update.flags[MODULE_ID][ModuleFlags.Drawing.CanvasLayers] = newLayers;
 
-        document._object._refreshState();
+        document._object._refreshVisibility();
     }
 });
 
@@ -1193,8 +1195,11 @@ const registerLibwrapperDrawing = () => {
             const canvasLayers = canvas.scene?.getFlag(MODULE_ID, ModuleFlags.Scene.CanvasLayers);
             if(!canvasLayers || Object.keys(canvasLayers) === 0) return wrapped(args);
             
-            const drawingUsedLayers = this.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
-            if(!drawingUsedLayers || drawingUsedLayers.length === 0) return wrapped(args);
+            const drawingUsedLayersRaw = this.document.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers);
+            if(!drawingUsedLayersRaw) return wrapped(args);
+
+            const drawingUsedLayers = Array.isArray(drawingUsedLayersRaw) ? drawingUsedLayersRaw : JSON.parse(drawingUsedLayersRaw);
+            if (drawingUsedLayers.length === 0) return wrapped(args);
 
             const userLayers = getUserSceneFlags();
             

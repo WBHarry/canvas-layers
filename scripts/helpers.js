@@ -39,7 +39,7 @@ export const refreshPlaceables = (scene, layerId) => {
 
         const drawingFlags = drawing.getFlag(MODULE_ID, ModuleFlags.Drawing.CanvasLayers) ?? [];
         if(drawingFlags?.includes(layerId)){
-            drawing._object._refreshState();
+            drawing._object._refreshVisibility();
         }
     }
 
